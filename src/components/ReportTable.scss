@@ -1,0 +1,33 @@
+.table-container {
+  overflow-x: auto;
+  margin-top: 28px;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+  background: white;
+
+  &:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 4px;
+  }
+}
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  th, td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #dbe2ea;
+    vertical-align: top;
+  }
+
+  thead { background: #edf2f7; }
+
+  tbody {
+    th { font-weight: 600; }
+    tr:last-child > * { border-bottom: 0; }
+    tr:hover { background: #f6f8fb; }
+  }
+
+  time { white-space: nowrap; }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "title": "Monthly sales",
+    "category": "Sales",
+    "date": "2026-09-30",
+    "summary": "An overview of sales performance for September.",
+    "content": "Total sales were GBP 42,500 across 170 orders. The most popular product was the starter package."
+  },
+  {
+    "id": "2",
+    "title": "Customer feedback",
+    "category": "Customer service",
+    "date": "2026-10-05",
+    "summary": "Highlights from the latest customer feedback.",
+    "content": "We received 85 responses with an average satisfaction score of 4.6 out of 5. Customers particularly valued the helpful support team."
+  },
+  {
+    "id": "3",
+    "title": "Website traffic",
+    "category": "Marketing",
+    "date": "2026-10-10",
+    "summary": "A snapshot of website visits and engagement.",
+    "content": "The website attracted 12,400 visitors. Organic search accounted for 58% of visits, and the average session lasted 3 minutes."
+  }
+]
