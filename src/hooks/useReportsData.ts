@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { getReportById, getReports } from "../api/reports";
+import { getReports } from "../api/reports";
 import type { Report } from "../types/report";
 
 interface ReportsState<T> {
@@ -9,12 +9,8 @@ interface ReportsState<T> {
   error: string;
 }
 
-export default function useReportsData(): ReportsState<Report[]>;
-export default function useReportsData(id: string): ReportsState<Report>;
-export default function useReportsData(
-  id?: string,
-): ReportsState<Report | Report[]> {
-  const [state, setState] = useState<ReportsState<Report | Report[]>>({
+export default function useReportsData(): ReportsState<Report[]> {
+  const [state, setState] = useState<ReportsState<Report[]>>({
     data: null,
     loading: true,
     error: "",
@@ -22,14 +18,8 @@ export default function useReportsData(
 
   useEffect(() => {
     const controller = new AbortController();
-    setState({ data: null, loading: true, error: "" });
 
-    const request =
-      id === undefined
-        ? getReports({ signal: controller.signal })
-        : getReportById(id, { signal: controller.signal });
-
-    request
+    getReports({ signal: controller.signal })
       .then((data) => {
         if (!controller.signal.aborted) {
           setState({ data, loading: false, error: "" });
@@ -40,15 +30,12 @@ export default function useReportsData(
         setState({
           data: null,
           loading: false,
-          error:
-            axios.isAxiosError(error) && error.response?.status === 404
-              ? "Report not found."
-              : "Unable to load reports. Please try again later.",
+          error: "Unable to load reports. Please try again later.",
         });
       });
 
     return () => controller.abort();
-  }, [id]);
+  }, []);
 
   return state;
 }

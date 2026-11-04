@@ -27,24 +27,28 @@ npm run preview
 
 ## How it works
 
-- `/` displays reports in a table with title, category, date and summary columns. Select a report title to view its details. The table scrolls horizontally on narrow screens.
-- `/reports/:id` fetches and displays an individual report, including on direct navigation.
-- [src/api/reports.ts](src/api/reports.ts) exposes typed `getReports` and `getReportById` functions.
+- `/` displays reports in a table with title, category, date and summary columns. Select a report title to open its placeholder page. The table scrolls horizontally on narrow screens.
+- `/reports/:id` displays a placeholder page without fetching an individual report.
+- [src/api/reports.ts](src/api/reports.ts) exposes the typed `getReports` function.
 - [src/api/client.ts](src/api/client.ts) configures the shared Axios client.
 - [src/data/reports.json](src/data/reports.json) contains the example data.
-- [src/api/mockApi.ts](src/api/mockApi.ts) intercepts Axios requests and serves that JSON for `GET /reports` and `GET /reports/:id`. Unknown IDs return 404. No separate backend is needed; this also works in the production build.
+- [src/api/mockApi.ts](src/api/mockApi.ts) intercepts Axios requests and serves that JSON for `GET /reports`. No separate backend is needed; this also works in the production build.
 
 Loading, empty and error states are included. Tests cover the API service,
-failed requests, cancellation, navigation and direct detail-page access.
+failed requests, cancellation, navigation and direct placeholder-page access.
 
 ## Project structure
 
 - [src/App.tsx](src/App.tsx) defines routes and the shared page container.
 - [src/pages/](src/pages/) contains the reports list, report details and not-found pages. Add new pages here and register their routes in `App.tsx`.
 - [src/components/DataTable.tsx](src/components/DataTable.tsx) is a generic, API-independent table with its own stylesheet. Pass `label`, `rows`, `columns` and `getRowKey`; optionally pass `emptyMessage`. Use `TableColumn<YourRowType>[]` to type column definitions. Row fields must be renderable React values.
-- [src/hooks/useReportsData.ts](src/hooks/useReportsData.ts) shares report fetching, loading/error state and cancellation between pages.
+- [src/hooks/useReportsData.ts](src/hooks/useReportsData.ts) fetches the reports list and manages loading/error state and cancellation.
 - [src/types/report.ts](src/types/report.ts) defines the shared report model.
 - [src/api/](src/api/) contains Axios services and the mock API.
+
+The reports hook takes no arguments and only calls `getReports`. Its initial
+state supplies the loading state; the effect starts/cancels the request and
+updates state asynchronously when it settles, with no synchronous state reset.
 
 Each table column defines a unique `key` and a `header`. By default, cells
 display `row[column.key]`. Supply `render(row)` for custom content such as
@@ -68,9 +72,8 @@ VITE_API_BASE_URL=http://localhost:3000/api
 Restart Vite after changing environment variables. These settings are public,
 build-time configuration; do not put secrets in them.
 
-The API should return an array for `GET /reports` and one report object for
-`GET /reports/:id`, using the fields in the example JSON. Configure CORS on
-the backend if it runs on a different origin.
+The API should return an array for `GET /reports`, using the fields in the
+example JSON. Configure CORS on the backend if it runs on a different origin.
 
 When hosting the built `dist` folder, configure the host to serve `index.html`
-for frontend routes such as `/reports/1` so refreshing a detail page works.
+for frontend routes such as `/reports/1` so refreshing a placeholder page works.

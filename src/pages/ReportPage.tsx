@@ -1,3 +1,9 @@
+import PageLayout from '../layouts/PageLayout'
+
 export default function ReportPage() {
-  return <h1>Report Name</h1>
+  return (
+    <PageLayout>
+      <h1>Report Name</h1>
+    </PageLayout>
+  )
 }
