@@ -1,0 +1,7 @@
+.page-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  h1, p { margin: 0; }
+}

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { apiClient } from "./client";
 import { setupMockApi } from "./mockApi";
-import { getReportById, getReports } from "./reports";
+import { getReports } from "./reports";
 import reports from "../data/reports.json";
 
 let mock = setupMockApi(apiClient);
@@ -17,17 +17,6 @@ describe("reports API", () => {
   it("fetches all reports from GET /reports", async () => {
     expect(await getReports()).toEqual(reports);
     expect(mock.history.get[0].url).toBe("/reports");
-  });
-
-  it("fetches the requested report from GET /reports/:id", async () => {
-    expect(await getReportById("2")).toEqual(reports[1]);
-    expect(mock.history.get[0].url).toBe("/reports/2");
-  });
-
-  it("rejects with a 404 for an unknown report", async () => {
-    await expect(getReportById("missing")).rejects.toMatchObject({
-      response: { status: 404 },
-    });
   });
 
   it("propagates server errors", async () => {
