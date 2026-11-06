@@ -27,7 +27,7 @@ npm run preview
 
 ## How it works
 
-- `/` displays reports in a table with title, category, date and summary columns. Select a report title to open its placeholder page. The table scrolls horizontally on narrow screens.
+- `/` displays reports in a table with title, category, date and summary columns. Enter a report name above the table and select Search (or press Enter) to filter locally by case-insensitive partial title. An empty search shows all reports. The table scrolls horizontally on narrow screens.
 - `/reports/:id` displays a placeholder page without fetching an individual report.
 - [src/api/reports.ts](src/api/reports.ts) exposes the typed `getReports` function.
 - [src/api/client.ts](src/api/client.ts) configures the shared Axios client.

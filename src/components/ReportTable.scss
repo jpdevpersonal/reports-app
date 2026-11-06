@@ -30,3 +30,25 @@
 
   time { white-space: nowrap; }
 }
+.report-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  input, button {
+    font: inherit;
+    padding: 8px 12px;
+    border: 1px solid #dbe2ea;
+    border-radius: 4px;
+  }
+
+  button { cursor: pointer; }
+}
