@@ -18,7 +18,7 @@ function renderApp(path = '/') {
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
 }
 
-it('loads the report table and opens the report placeholder when a title is clicked', async () => {
+it('loads the report table and opens JSON-driven report fields when a title is clicked', async () => {
   const user = userEvent.setup()
   renderApp()
   expect(screen.getByRole('status')).toHaveTextContent('Loading reports')
@@ -37,19 +37,22 @@ it('loads the report table and opens the report placeholder when a title is clic
   const reportLink = within(table).getByRole('link', { name: 'Monthly sales' })
   expect(screen.getAllByRole('link')).toHaveLength(reports.length)
   await user.click(reportLink)
-  expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Monthly sales' })).toBeInTheDocument()
+  expect(screen.getByRole('textbox', { name: 'Sales notes' })).toBeInTheDocument()
+  expect(screen.getByRole('combobox', { name: 'Sales region' })).toBeInTheDocument()
   expect(mock.history.get.map((request) => request.url)).toEqual(['/reports'])
 })
 
-it('shows the report placeholder when opening its URL directly', () => {
+it('loads report fields from JSON when opening its URL directly', () => {
   renderApp('/reports/2')
-  expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Customer feedback' })).toBeInTheDocument()
+  expect(screen.getByRole('textbox', { name: 'Feedback notes' })).toBeInTheDocument()
   expect(mock.history.get).toHaveLength(0)
 })
 
-it('shows the report placeholder for any report ID', () => {
+it('shows a not-found state for an unknown report ID', () => {
   renderApp('/reports/missing')
-  expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Report not found' })).toBeInTheDocument()
   expect(mock.history.get).toHaveLength(0)
 })
 
