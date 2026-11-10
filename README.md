@@ -27,7 +27,7 @@ npm run preview
 
 ## How it works
 
-- `/` displays reports in a table with title, category, date and summary columns. Enter a report name above the table and select Search (or press Enter) to filter locally by case-insensitive partial title. An empty search shows all reports. The table scrolls horizontally on narrow screens.
+- `/` displays reports in a table with title, category, date and summary columns. Type a report name above the table to filter immediately by case-insensitive partial title. Use the Clear link-style button to reset the search and show all reports. An empty search shows all reports. The table scrolls horizontally on narrow screens.
 - `/reports/:id` fetches that report's fields from `GET /reports/:id/fields` and shows one editable input per field (see [Custom field components](#custom-field-components)).
 - [src/api/reports.ts](src/api/reports.ts) exposes the typed `getReports` and `getReportFields` functions.
 - [src/api/client.ts](src/api/client.ts) configures the shared Axios client.

@@ -10,7 +10,7 @@ interface ReportTableProps {
 
 export default function ReportTable({ reports }: ReportTableProps) {
   const [searchText, setSearchText] = useState("");
-  const [search, setSearch] = useState("");
+  const search = searchText.trim().toLowerCase();
   const filteredReports = reports.filter((report) =>
     report.title.toLowerCase().includes(search),
   );
@@ -19,13 +19,7 @@ export default function ReportTable({ reports }: ReportTableProps) {
 
   return (
     <>
-      <form
-        className="report-filter"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setSearch(searchText.trim().toLowerCase());
-        }}
-      >
+      <div className="report-filter">
         <label>
           Report name
           <input
@@ -34,8 +28,8 @@ export default function ReportTable({ reports }: ReportTableProps) {
             onChange={(event) => setSearchText(event.target.value)}
           />
         </label>
-        <button type="submit">Search</button>
-      </form>
+        <button type="button" onClick={() => setSearchText("")}>Clear</button>
+      </div>
       {filteredReports.length === 0 ? (
         <p role="status">No reports match your search.</p>
       ) : (
