@@ -38,19 +38,22 @@ it('loads the report table and opens the report placeholder when a title is clic
   expect(screen.getAllByRole('link')).toHaveLength(reports.length)
   await user.click(reportLink)
   expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
-  expect(mock.history.get.map((request) => request.url)).toEqual(['/reports'])
+  expect(await screen.findByRole('textbox', { name: 'Author' })).toHaveValue('Alex Morgan')
+  expect(screen.getByRole('combobox', { name: 'Region' })).toBeInTheDocument()
+  expect(mock.history.get.map((request) => request.url)).toEqual(['/reports', '/reports/1/fields'])
 })
 
-it('shows the report placeholder when opening its URL directly', () => {
+it('loads the report fields when opening a report URL directly', async () => {
   renderApp('/reports/2')
   expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
-  expect(mock.history.get).toHaveLength(0)
+  expect(await screen.findByRole('textbox', { name: 'Reviewer' })).toHaveValue('Sam Patel')
+  expect(mock.history.get.map((request) => request.url)).toEqual(['/reports/2/fields'])
 })
 
-it('shows the report placeholder for any report ID', () => {
+it('shows an error for an unknown report ID', async () => {
   renderApp('/reports/missing')
   expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
-  expect(mock.history.get).toHaveLength(0)
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load report fields')
 })
 
 it('shows an error when fetching reports fails', async () => {
