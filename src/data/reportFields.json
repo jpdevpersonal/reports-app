@@ -1,0 +1,23 @@
+[
+  {
+    "reportId": "1",
+    "fields": [
+      { "id": "author", "label": "Author", "dataType": "string", "value": "Alex Morgan" },
+      { "id": "region", "label": "Region", "dataType": "array", "value": ["North", "South", "East", "West"] }
+    ]
+  },
+  {
+    "reportId": "2",
+    "fields": [
+      { "id": "reviewer", "label": "Reviewer", "dataType": "string", "value": "Sam Patel" },
+      { "id": "notes", "label": "Notes", "dataType": "string", "value": "" }
+    ]
+  },
+  {
+    "reportId": "3",
+    "fields": [
+      { "id": "channel", "label": "Channel", "dataType": "array", "value": ["Organic search", "Social media", "Email"] },
+      { "id": "period", "label": "Period", "dataType": "array", "value": ["Weekly", "Monthly", "Quarterly"] }
+    ]
+  }
+]

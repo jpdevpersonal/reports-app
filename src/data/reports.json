@@ -22,5 +22,381 @@
     "date": "2026-10-10",
     "summary": "A snapshot of website visits and engagement.",
     "content": "The website attracted 12,400 visitors. Organic search accounted for 58% of visits, and the average session lasted 3 minutes."
+  },
+  {
+    "id": "4",
+    "title": "Quarterly revenue",
+    "category": "Finance",
+    "date": "2026-10-15",
+    "summary": "A review of revenue across the third quarter.",
+    "content": "Revenue reached GBP 186,000, a 7% increase on the previous quarter, with renewals contributing the largest share."
+  },
+  {
+    "id": "5",
+    "title": "Support response times",
+    "category": "Customer service",
+    "date": "2026-10-16",
+    "summary": "A summary of response times for support requests.",
+    "content": "The team answered 92% of requests within four hours. Median first response time was 38 minutes."
+  },
+  {
+    "id": "6",
+    "title": "Product launch performance",
+    "category": "Product",
+    "date": "2026-10-17",
+    "summary": "Early results from the latest product launch.",
+    "content": "The new product received 640 sign-ups in its first week, and 81% of trial users completed setup."
+  },
+  {
+    "id": "7",
+    "title": "Regional sales comparison",
+    "category": "Sales",
+    "date": "2026-10-18",
+    "summary": "Sales performance compared across operating regions.",
+    "content": "The north region led with GBP 31,200 in sales, while the west region recorded the strongest month-over-month growth at 12%."
+  },
+  {
+    "id": "8",
+    "title": "Email campaign results",
+    "category": "Marketing",
+    "date": "2026-10-19",
+    "summary": "Engagement results from the October customer email.",
+    "content": "The campaign reached 8,200 subscribers, with a 34% open rate and a 6% click-through rate."
+  },
+  {
+    "id": "9",
+    "title": "Employee engagement",
+    "category": "Human resources",
+    "date": "2026-10-20",
+    "summary": "Findings from the latest employee engagement survey.",
+    "content": "The survey received responses from 76 employees. Overall engagement was 82%, with team communication identified as an improvement area."
+  },
+  {
+    "id": "10",
+    "title": "Inventory status",
+    "category": "Operations",
+    "date": "2026-10-21",
+    "summary": "A check of stock levels and replenishment needs.",
+    "content": "Inventory accuracy was 97%. Three high-demand items require replenishment before the end of the month."
+  },
+  {
+    "id": "11",
+    "title": "Mobile app usage",
+    "category": "Product",
+    "date": "2026-10-22",
+    "summary": "An overview of activity in the mobile application.",
+    "content": "The app recorded 4,300 active users this month. Users completed an average of 6.2 sessions per week."
+  },
+  {
+    "id": "12",
+    "title": "Quarterly expense review",
+    "category": "Finance",
+    "date": "2026-10-23",
+    "summary": "Operating expenses compared with the quarterly budget.",
+    "content": "Operating expenses were 3% under budget. Travel spending decreased by GBP 2,400 compared with the prior quarter."
+  },
+  {
+    "id": "13",
+    "title": "Customer retention",
+    "category": "Customer service",
+    "date": "2026-10-24",
+    "summary": "A review of customer renewals and retention trends.",
+    "content": "Customer retention was 91% for the period. Most non-renewals cited a change in business requirements."
+  },
+  {
+    "id": "14",
+    "title": "Social media reach",
+    "category": "Marketing",
+    "date": "2026-10-25",
+    "summary": "Reach and interaction across social media channels.",
+    "content": "Posts reached 28,000 accounts across all channels. Short video posts generated the highest average engagement."
+  },
+  {
+    "id": "15",
+    "title": "Delivery performance",
+    "category": "Operations",
+    "date": "2026-10-26",
+    "summary": "On-time delivery performance for customer orders.",
+    "content": "94% of orders arrived on schedule. Weather delays affected 18 deliveries during the reporting period."
+  },
+  {
+    "id": "16",
+    "title": "Training completion",
+    "category": "Human resources",
+    "date": "2026-10-27",
+    "summary": "Completion rates for required staff training.",
+    "content": "Mandatory training was completed by 89% of staff. Managers have scheduled follow-up sessions for outstanding modules."
+  },
+  {
+    "id": "17",
+    "title": "Website conversion",
+    "category": "Marketing",
+    "date": "2026-10-28",
+    "summary": "Conversion rates across key website journeys.",
+    "content": "The overall conversion rate was 3.8%. The simplified checkout flow converted 1.1 percentage points above the previous design."
+  },
+  {
+    "id": "18",
+    "title": "New customer onboarding",
+    "category": "Customer service",
+    "date": "2026-10-29",
+    "summary": "Progress through the customer onboarding process.",
+    "content": "Of 125 new customers, 113 completed onboarding within five business days. The account setup guide was the most viewed resource."
+  },
+  {
+    "id": "19",
+    "title": "Lead pipeline",
+    "category": "Sales",
+    "date": "2026-10-30",
+    "summary": "A snapshot of qualified leads and expected opportunities.",
+    "content": "The pipeline contains 214 qualified leads with an estimated value of GBP 520,000. Thirty-two opportunities are scheduled for follow-up."
+  },
+  {
+    "id": "20",
+    "title": "Quality assurance results",
+    "category": "Operations",
+    "date": "2026-10-31",
+    "summary": "Quality checks completed during the reporting period.",
+    "content": "The team completed 460 quality checks, with 96% passing on the first review. Documentation errors accounted for most rework."
+  },
+  {
+    "id": "21",
+    "title": "Feature adoption",
+    "category": "Product",
+    "date": "2026-11-01",
+    "summary": "Adoption levels for recently released product features.",
+    "content": "The new dashboard was used by 57% of active accounts. Saved filters were created by 340 users."
+  },
+  {
+    "id": "22",
+    "title": "Cash flow forecast",
+    "category": "Finance",
+    "date": "2026-11-02",
+    "summary": "An updated forecast of cash flow for the next month.",
+    "content": "Projected cash flow remains positive throughout November, with expected receipts of GBP 74,000 and planned outgoings of GBP 51,000."
+  },
+  {
+    "id": "23",
+    "title": "Customer satisfaction",
+    "category": "Customer service",
+    "date": "2026-11-03",
+    "summary": "Customer satisfaction scores from recent interactions.",
+    "content": "The latest satisfaction score was 4.5 out of 5 from 210 responses. Clearer status updates were the most common request."
+  },
+  {
+    "id": "24",
+    "title": "Search campaign performance",
+    "category": "Marketing",
+    "date": "2026-11-04",
+    "summary": "Results from paid and organic search campaigns.",
+    "content": "Search campaigns generated 1,840 visits and 96 enquiries. Cost per enquiry decreased by 8% compared with October."
+  },
+  {
+    "id": "25",
+    "title": "Order processing",
+    "category": "Operations",
+    "date": "2026-11-05",
+    "summary": "Order volumes and processing times for the week.",
+    "content": "The operations team processed 520 orders with an average turnaround of 1.4 business days."
+  },
+  {
+    "id": "26",
+    "title": "Hiring pipeline",
+    "category": "Human resources",
+    "date": "2026-11-06",
+    "summary": "Status of open roles and candidate progression.",
+    "content": "There are six open roles, with 42 candidates progressing through interviews. Two positions are at final review."
+  },
+  {
+    "id": "27",
+    "title": "Subscription renewals",
+    "category": "Sales",
+    "date": "2026-11-07",
+    "summary": "Upcoming renewals and their current status.",
+    "content": "Thirty-eight subscriptions are due for renewal this month. Twenty-nine customers have confirmed their renewal plans."
+  },
+  {
+    "id": "28",
+    "title": "System availability",
+    "category": "Technology",
+    "date": "2026-11-08",
+    "summary": "Service availability and incidents recorded this month.",
+    "content": "Service availability was 99.94%. One scheduled maintenance window and two brief incidents were recorded."
+  },
+  {
+    "id": "29",
+    "title": "Product feedback themes",
+    "category": "Product",
+    "date": "2026-11-09",
+    "summary": "Common themes found in recent product feedback.",
+    "content": "Users praised the reporting tools and requested more export options. The feedback team reviewed 135 submissions."
+  },
+  {
+    "id": "30",
+    "title": "Accounts receivable",
+    "category": "Finance",
+    "date": "2026-11-10",
+    "summary": "Aging and collection status for outstanding invoices.",
+    "content": "Accounts receivable totaled GBP 68,500. Eighty-seven percent of invoices were paid within their agreed terms."
+  },
+  {
+    "id": "31",
+    "title": "Referral programme",
+    "category": "Marketing",
+    "date": "2026-11-11",
+    "summary": "Participation and conversions from customer referrals.",
+    "content": "Customers submitted 74 referrals, resulting in 19 new accounts. Referral conversions were strongest among small businesses."
+  },
+  {
+    "id": "32",
+    "title": "Help centre performance",
+    "category": "Customer service",
+    "date": "2026-11-12",
+    "summary": "Visits and outcomes for self-service support articles.",
+    "content": "The help centre received 6,700 visits. Searches for account setup and billing were the most frequent."
+  },
+  {
+    "id": "33",
+    "title": "Supplier review",
+    "category": "Operations",
+    "date": "2026-11-13",
+    "summary": "A review of supplier delivery and service levels.",
+    "content": "Nine of ten suppliers met their delivery targets. The team is following up on recurring delays from one supplier."
+  },
+  {
+    "id": "34",
+    "title": "Staff absence overview",
+    "category": "Human resources",
+    "date": "2026-11-14",
+    "summary": "Absence levels and coverage across the organisation.",
+    "content": "The absence rate was 2.8% for the period. Team leads arranged coverage for all customer-facing shifts."
+  },
+  {
+    "id": "35",
+    "title": "Campaign content review",
+    "category": "Marketing",
+    "date": "2026-11-15",
+    "summary": "Performance of recent campaign content formats.",
+    "content": "Case studies generated 24% more page views than product announcements. The next campaign will include two additional customer stories."
+  },
+  {
+    "id": "36",
+    "title": "Sales team activity",
+    "category": "Sales",
+    "date": "2026-11-16",
+    "summary": "Customer conversations and follow-ups completed by sales.",
+    "content": "The team completed 186 customer calls and 92 demonstrations. Follow-up tasks were completed within two days in 88% of cases."
+  },
+  {
+    "id": "37",
+    "title": "Release readiness",
+    "category": "Product",
+    "date": "2026-11-17",
+    "summary": "Readiness checks for the next product release.",
+    "content": "All 26 planned release checks are complete. Documentation and customer support materials are ready for publication."
+  },
+  {
+    "id": "38",
+    "title": "Budget variance",
+    "category": "Finance",
+    "date": "2026-11-18",
+    "summary": "Department spending compared with the monthly budget.",
+    "content": "Overall spending is 2% below budget. Software costs were higher than expected due to additional project seats."
+  },
+  {
+    "id": "39",
+    "title": "Customer case resolution",
+    "category": "Customer service",
+    "date": "2026-11-19",
+    "summary": "Resolution times and outcomes for customer cases.",
+    "content": "The team closed 312 cases with an average resolution time of 7.6 hours. Escalations decreased by 9%."
+  },
+  {
+    "id": "40",
+    "title": "Fulfilment capacity",
+    "category": "Operations",
+    "date": "2026-11-20",
+    "summary": "Current capacity and forecast for order fulfilment.",
+    "content": "The fulfilment team is operating at 78% of weekly capacity and can support an estimated 15% increase in order volume."
+  },
+  {
+    "id": "41",
+    "title": "Brand awareness survey",
+    "category": "Marketing",
+    "date": "2026-11-21",
+    "summary": "Results from a survey measuring brand awareness.",
+    "content": "Unaided brand awareness was 22% among surveyed businesses, up from 19% in the previous survey."
+  },
+  {
+    "id": "42",
+    "title": "Employee onboarding",
+    "category": "Human resources",
+    "date": "2026-11-22",
+    "summary": "Feedback and completion rates for new employee onboarding.",
+    "content": "Seven new employees completed onboarding this month. Average feedback was 4.7 out of 5."
+  },
+  {
+    "id": "43",
+    "title": "Average deal size",
+    "category": "Sales",
+    "date": "2026-11-23",
+    "summary": "Changes in the size and mix of closed sales.",
+    "content": "The average closed deal was GBP 4,850, up 5% from the previous month. Annual plans made up 63% of new contracts."
+  },
+  {
+    "id": "44",
+    "title": "Application performance",
+    "category": "Technology",
+    "date": "2026-11-24",
+    "summary": "Response times and performance for the web application.",
+    "content": "The median page response time was 420 milliseconds. The team identified two queries for optimization."
+  },
+  {
+    "id": "45",
+    "title": "Usability study",
+    "category": "Product",
+    "date": "2026-11-25",
+    "summary": "Observations from recent product usability sessions.",
+    "content": "Eight participants completed the core workflow. Most finished without assistance, while three suggested clearer navigation labels."
+  },
+  {
+    "id": "46",
+    "title": "Invoice processing",
+    "category": "Finance",
+    "date": "2026-11-26",
+    "summary": "Volume and turnaround time for supplier invoices.",
+    "content": "The finance team processed 286 invoices with an average turnaround of 2.1 business days."
+  },
+  {
+    "id": "47",
+    "title": "Customer contact channels",
+    "category": "Customer service",
+    "date": "2026-11-27",
+    "summary": "How customers contacted the support team this month.",
+    "content": "Email accounted for 54% of support requests, followed by chat at 33% and phone at 13%."
+  },
+  {
+    "id": "48",
+    "title": "Warehouse safety checks",
+    "category": "Operations",
+    "date": "2026-11-28",
+    "summary": "Completion of routine warehouse safety inspections.",
+    "content": "All 18 scheduled inspections were completed. The team logged four minor actions and no reportable incidents."
+  },
+  {
+    "id": "49",
+    "title": "Partner channel sales",
+    "category": "Sales",
+    "date": "2026-11-29",
+    "summary": "Sales and referrals generated through partners.",
+    "content": "Partner channels generated GBP 27,400 in sales and referred 46 prospective customers."
+  },
+  {
+    "id": "50",
+    "title": "Customer communications review",
+    "category": "Marketing",
+    "date": "2026-11-30",
+    "summary": "Engagement with recent customer communications.",
+    "content": "Product update messages reached 5,600 customers, and 71% of surveyed readers found the updates useful."
   }
 ]

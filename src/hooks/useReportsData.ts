@@ -3,7 +3,7 @@ import axios from "axios";
 import { getReports } from "../api/reports";
 import type { Report } from "../types/report";
 
-interface ReportsState<T> {
+export interface ReportsState<T> {
   data: T | null;
   loading: boolean;
   error: string;
