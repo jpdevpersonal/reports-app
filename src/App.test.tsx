@@ -18,7 +18,7 @@ function renderApp(path = '/') {
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
 }
 
-it('loads the report table and opens the report placeholder when a title is clicked', async () => {
+it('loads the report table and opens execution results when a title is clicked', async () => {
   const user = userEvent.setup()
   renderApp()
   expect(screen.getByRole('status')).toHaveTextContent('Loading reports')
@@ -37,20 +37,26 @@ it('loads the report table and opens the report placeholder when a title is clic
   const reportLink = within(table).getByRole('link', { name: 'Monthly sales' })
   expect(screen.getAllByRole('link')).toHaveLength(reports.length)
   await user.click(reportLink)
-  expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
-  expect(mock.history.get.map((request) => request.url)).toEqual(['/reports'])
+  expect(await screen.findByRole('heading', { name: 'Monthly sales' })).toBeInTheDocument()
+  expect(await screen.findByRole('table', { name: 'Execution results' })).toBeInTheDocument()
+  expect(mock.history.get.map((request) => request.url))
+    .toEqual(['/reports', '/reports', '/reports/1/results'])
 })
 
-it('shows the report placeholder when opening its URL directly', () => {
+it('shows execution results when opening a report URL directly', async () => {
   renderApp('/reports/2')
-  expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
-  expect(mock.history.get).toHaveLength(0)
+  expect(await screen.findByRole('heading', { name: 'Customer feedback' })).toBeInTheDocument()
+  expect(await screen.findByRole('table', { name: 'Execution results' })).toBeInTheDocument()
+  expect(mock.history.get.map((request) => request.url))
+    .toContain('/reports/2/results')
 })
 
-it('shows the report placeholder for any report ID', () => {
+it('shows execution results for an unknown report ID', async () => {
   renderApp('/reports/missing')
-  expect(screen.getByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
-  expect(mock.history.get).toHaveLength(0)
+  expect(await screen.findByRole('heading', { name: 'Report Name' })).toBeInTheDocument()
+  expect(await screen.findByRole('table', { name: 'Execution results' })).toBeInTheDocument()
+  expect(mock.history.get.map((request) => request.url))
+    .toContain('/reports/missing/results')
 })
 
 it('shows an error when fetching reports fails', async () => {

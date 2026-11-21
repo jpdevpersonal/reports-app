@@ -1,0 +1,1 @@
+export const EXECUTION_RESULTS_PAGE_SIZE = 20
