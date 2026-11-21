@@ -1,0 +1,36 @@
+[
+  {
+    "id": "1",
+    "title": "Monthly sales",
+    "fields": [
+      { "id": "sales-notes", "label": "Sales notes", "dataType": "string", "value": "" },
+      {
+        "id": "sales-region",
+        "label": "Sales region",
+        "dataType": "array",
+        "options": ["All regions", "North", "South"],
+        "value": "All regions"
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "title": "Customer feedback",
+    "fields": [
+      { "id": "feedback-notes", "label": "Feedback notes", "dataType": "string", "value": "Customer highlights" }
+    ]
+  },
+  {
+    "id": "3",
+    "title": "Website traffic",
+    "fields": [
+      {
+        "id": "traffic-source",
+        "label": "Traffic source",
+        "dataType": "array",
+        "options": ["Organic search", "Direct", "Referral"],
+        "value": ""
+      }
+    ]
+  }
+]

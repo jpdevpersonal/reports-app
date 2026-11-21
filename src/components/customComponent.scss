@@ -1,0 +1,15 @@
+.custom-component {
+  display: grid;
+  gap: 6px;
+  margin-block: 16px;
+
+  input,
+  select {
+    width: 100%;
+    max-width: 32rem;
+    padding: 8px;
+    font: inherit;
+    border: 1px solid #526074;
+    border-radius: 4px;
+  }
+}
