@@ -48,8 +48,8 @@ describe("reports API", () => {
       limit: EXECUTION_RESULTS_PAGE_SIZE,
     })
 
-    expect(result.executionReport.Books).toBeDefined()
-    expect(result.executionReport.total).toBeGreaterThan(0)
+    expect(result.rows).toBeDefined()
+    expect(result.pagination.numberOfRecords).toBeGreaterThan(0)
     expect(mock.history.get[0].url).toBe("/reports/1/results")
     expect(mock.history.get[0].params).toEqual({
       start: 5,
@@ -74,9 +74,14 @@ describe("reports API", () => {
       limit: EXECUTION_RESULTS_PAGE_SIZE,
     })
 
-    expect(firstPage.executionReport.Books).toHaveLength(20)
-    expect(secondPage.executionReport.Books).toHaveLength(20)
-    expect(finalPage.executionReport.Books).toHaveLength(12)
-    expect(finalPage.executionReport.total).toBe(52)
+    expect(firstPage.rows).toHaveLength(20)
+    expect(secondPage.rows).toHaveLength(20)
+    expect(finalPage.rows).toHaveLength(10)
+    expect(finalPage.pagination).toEqual({
+      pageNumber: 2,
+      pageSize: 20,
+      numberOfRecords: 50,
+      numberOfPages: 3,
+    })
   })
 });

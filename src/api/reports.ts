@@ -24,14 +24,10 @@ export async function getExecutionResults({
   start = 0,
   limit = EXECUTION_RESULTS_PAGE_SIZE,
   signal,
-}: ExecutionResultsRequestOptions): Promise<ExecutionReportPayload & {
-  executionReport: { total: number }
-}> {
+}: ExecutionResultsRequestOptions): Promise<ExecutionReportPayload> {
   const response = await apiClient.get<ExecutionReportPayload>(
     `/reports/${encodeURIComponent(reportId)}/results`,
     { params: { start, limit }, signal },
   )
-  return response.data as ExecutionReportPayload & {
-    executionReport: { total: number }
-  }
+  return response.data
 }

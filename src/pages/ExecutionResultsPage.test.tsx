@@ -36,15 +36,17 @@ function renderPage() {
 it("loads report details and execution results through the hooks", async () => {
   mock.onGet("/reports").reply(200, reports);
   mock.onGet("/reports/1/results").reply(200, {
-    executionReport: {
-      total: 21,
-      Books: [{
-        Columns: [
-          { Description: "Title", Type: "string", Value: "The Hobbit" },
-          { Description: "In Stock", Type: "boolean", Value: true },
-        ],
-      }],
+    pagination: {
+      pageNumber: 0,
+      pageSize: 20,
+      numberOfRecords: 21,
+      numberOfPages: 2,
     },
+    columns: [
+      { id: "title", displayName: "Title", dataType: "string" },
+      { id: "in_stock", displayName: "In Stock", dataType: "boolean" },
+    ],
+    rows: [{ entries: ["The Hobbit", true] }],
   });
 
   renderPage();
@@ -68,14 +70,16 @@ it("loads report details and execution results through the hooks", async () => {
 it("requests the next page when pagination changes", async () => {
   mock.onGet("/reports").reply(200, reports);
   mock.onGet("/reports/1/results").reply(200, {
-    executionReport: {
-      total: 21,
-      Books: [{
-        Columns: [
-          { Description: "Title", Type: "string", Value: "The Hobbit" },
-        ],
-      }],
+    pagination: {
+      pageNumber: 0,
+      pageSize: 20,
+      numberOfRecords: 21,
+      numberOfPages: 2,
     },
+    columns: [
+      { id: "title", displayName: "Title", dataType: "string" },
+    ],
+    rows: [{ entries: ["The Hobbit"] }],
   });
 
   const user = userEvent.setup();

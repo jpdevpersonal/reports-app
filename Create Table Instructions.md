@@ -1,275 +1,148 @@
-# 1. Overall architecture
+# Create the dynamic execution-results table
 
-When a user clicks a report, the following happens:
+These instructions describe the current execution-results flow and API contract.
+
+## 1. Architecture
 
 ```text
 Reports list
-    │
-    │ User clicks a report title
-    ▼
-/reports/:id
-    │
-    ▼
+    |
+    | User opens /reports/:id
+    v
 ExecutionResultsPage
-    ├── Uses hooks to load reports and execution results
-    ├── Owns the current pagination start point
-    └── Passes the columns and rows to DynamicResultsTable
-                                            │
-                                            ├── Generates table headers and cells
-                                            └── Calls the page when pagination changes
-```
+    |-- Owns the current pagination offset
+    |-- Loads the selected result page with useExecutionResultsData
+    `-- Passes columns, rows, and pagination to DynamicResultsTable
 
-The API side looks like this:
-
-```text
 getExecutionResults()
-    │
-    ▼
-useExecutionResultsData
-    ├── Requests the selected page
-    ├── Converts the API response into a table-friendly shape
-    └── Manages loading, errors and request cancellation
-    │
-    ▼
+    |
+    v
 Axios API client
-    │
-    ▼
-Mock API intercepts the request
-    │
-    ▼
-Reads books from executionResults.json
-    │
-    ▼
-Returns only the requested page and the total record count
+    |
+    v
+Mock API
+    |-- Reads executionResults2.json
+    |-- Slices the requested rows
+    `-- Returns the current pagination metadata
 ```
 
-### Responsibilities
+The responsibilities are intentionally separated:
 
 | Part | Responsibility |
 |---|---|
-| `App.tsx` | Connects a URL to a page. |
-| `reports.ts` | Provides functions for requesting data. |
-| `mockApi.ts` | Pretends to be a backend while developing. |
-| `report.ts` | Describes the expected data using TypeScript. |
-| `useExecutionResultsData.ts` | Loads, normalizes and cancels execution-result requests. |
-| `ExecutionResultsPage.tsx` | Manages pagination and composes the screen. |
-| `DynamicResultsTable.tsx` | Displays the supplied data and pagination controls. |
+| `reports.ts` | Sends the execution-results request. |
+| `mockApi.ts` | Supplies and paginates development mock data. |
+| `report.ts` | Defines the API response shape. |
+| `useExecutionResultsData.ts` | Loads results and manages loading, errors, and cancellation. |
+| `ExecutionResultsPage.tsx` | Tracks the current page offset and composes the page. |
+| `DynamicResultsTable.tsx` | Renders columns, positional row entries, and pagination controls. |
 
-The separation of responsibilities is important:
+Every report currently receives the same 50 mock books. The report ID changes the request URL and page title, but the mock API does not select different data for different IDs.
 
-- The **hook** knows how to obtain and prepare the data.
-- The **page** knows which report and page are currently selected.
-- The **table** only knows how to display data it receives.
+## 2. API response format
 
-That separation makes the table easier to reuse with another API later.
+The API now returns a top-level `pagination`, `columns`, and `rows` object:
 
-> **Current mock limitation:** the selected report ID changes the URL and page title, but every report currently receives the same mock book data. There is no separate backend yet.
-
----
-
-# 2. Connect report links to the results page
-
-The reports table already contains this link in `ReportTable.tsx`:
-
-```tsx
-<Link to={`/reports/${report.id}`}>{report.title}</Link>
-```
-
-Suppose a report has:
-
-```ts
+```json
 {
-  id: "1",
-  title: "Monthly sales"
+  "pagination": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "numberOfRecords": 50,
+    "numberOfPages": 3
+  },
+  "columns": [
+    {
+      "id": "title",
+      "displayName": "title",
+      "dataType": "string"
+    },
+    {
+      "id": "price",
+      "displayName": "price",
+      "dataType": "numeric"
+    }
+  ],
+  "rows": [
+    {
+      "entries": ["Animal Farm", 19.99]
+    }
+  ]
 }
 ```
 
-The link points to:
+Each `rows[].entries` value corresponds to the column at the same index:
 
 ```text
-/reports/1
+entries[0] -> columns[0]
+entries[1] -> columns[1]
+entries[2] -> columns[2]
 ```
 
-### Syntax explained
+This positional relationship is the contract. Rows should contain the same number of entries as the `columns` array and in the same order.
 
-- `<Link>` is React Router’s navigation component. It changes pages inside the React app.
-- `to={...}` supplies the destination.
-- The backticks create a **template string**.
-- `${report.id}` inserts the report ID into that string.
-- `{report.title}` displays the title as the link text. Curly braces in JSX mean “evaluate this JavaScript expression.”
+The repository's complete mock response is stored in `src/data/executionResults2.json`. It contains 50 books and 10 columns.
 
-## Register the route
+## 3. Define the response types
 
-In `App.tsx`, import the page:
-
-```tsx
-import ExecutionResultsPage from "./pages/ExecutionResultsPage";
-```
-
-Then add its route inside the existing `RootLayout` route:
-
-```tsx
-<Route path="/reports/:id" element={<ExecutionResultsPage />} />
-```
-
-- `:id` means “match a value in this part of the URL.”
-- For `/reports/1`, the value of `id` is `"1"`.
-- `element={<ExecutionResultsPage />}` tells React Router which component to render.
-- The outer `{...}` in `element={...}` embeds a JSX expression inside a JSX attribute.
-
-The page will read that ID later with `useParams()`.
-
----
-
-# 3. Define the data types
-
-In `report.ts`, the existing `Report` type describes the reports list. Add the execution-results types underneath it:
+Update `src/types/report.ts` with types matching the API:
 
 ```ts
-export type ExecutionColumnType = 'string' | 'number' | 'boolean'
+export type ExecutionColumnDataType =
+  | 'string'
+  | 'integer'
+  | 'numeric'
+  | 'boolean'
+  | 'timestamp'
 
 export interface ExecutionColumn {
-  description: string
-  type: ExecutionColumnType
+  id: string
+  displayName: string
+  dataType: ExecutionColumnDataType
 }
 
-export interface ExecutionColumnSource {
-  Description?: string
-  description?: string
-  Name?: string
-  name?: string
-  Type?: ExecutionColumnType
-  type?: ExecutionColumnType
-  Value?: unknown
-  value?: unknown
+export interface ExecutionRow {
+  entries: unknown[]
 }
 
-export interface ExecutionBookSource {
-  Columns?: ExecutionColumnSource[]
-  columns?: ExecutionColumnSource[]
-  [key: string]: unknown
+export interface ExecutionPagination {
+  pageNumber: number
+  pageSize: number
+  numberOfRecords: number
+  numberOfPages: number
 }
 
 export interface ExecutionReportPayload {
-  executionReport?: {
-    Books?: ExecutionBookSource[]
-    books?: ExecutionBookSource[]
-    Columns?: ExecutionColumn[]
-    columns?: ExecutionColumn[]
-    total?: number
-    Total?: number
-  }
+  pagination: ExecutionPagination
+  columns: ExecutionColumn[]
+  rows: ExecutionRow[]
 }
 ```
 
-## Why define types?
+`unknown[]` means an entry can hold any primitive or other API value, but code must narrow its type before performing type-specific operations.
 
-TypeScript checks that the code uses data consistently. For example, it can warn you if you accidentally use `column.name` where the prepared column object has `column.description`.
+TypeScript checks how application code uses these interfaces; it does not validate untrusted runtime JSON. A real backend boundary may still need runtime schema validation.
 
-Types are used during development and compilation. **They do not validate actual data received from an API at runtime.**
+## 4. Keep the requested page size in one place
 
-## Syntax explained
-
-### A union type
-
-```ts
-export type ExecutionColumnType = 'string' | 'number' | 'boolean'
-```
-
-The `|` means **or**. A column type can be one of these three text values.
-
-`export` allows other files to import the type.
-
-### An interface
-
-```ts
-export interface ExecutionColumn {
-  description: string
-  type: ExecutionColumnType
-}
-```
-
-This says a prepared column must have:
-
-```ts
-{
-  description: "Title",
-  type: "string"
-}
-```
-
-### Optional fields
-
-```ts
-Description?: string
-```
-
-The `?` means that property may be absent.
-
-The source type allows variations such as `Description` and `description`, because the normalization code can handle either spelling. This is a limited attempt to accommodate future API changes—not a guarantee that every future structure will work.
-
-### Arrays and unknown values
-
-```ts
-Columns?: ExecutionColumnSource[]
-```
-
-`ExecutionColumnSource[]` means an array of column objects.
-
-```ts
-Value?: unknown
-```
-
-`unknown` means the value could be any type, but TypeScript requires us to consider its type before treating it as something more specific.
-
-```ts
-[key: string]: unknown
-```
-
-This allows a book object to have additional properties whose names are strings. The normalizer uses this when handling a possible alternative shape where values are properties of the book.
-
----
-
-# 4. Set the page size
-
-Create `constants.ts`:
+Create `src/api/constants.ts`:
 
 ```ts
 export const EXECUTION_RESULTS_PAGE_SIZE = 20
 ```
 
-`const` declares a value that the code does not reassign. The uppercase name signals that this is a shared constant.
+The request hook and mock API import this value so their default page size remains synchronized.
 
-Both the page and mock API can import this value. Keeping it in a small separate file also avoids making the mock API import the API service, which itself imports the client that sets up the mock.
+## 5. Add the API request
 
-To show, for example, ten records per page instead, change it to:
-
-```ts
-export const EXECUTION_RESULTS_PAGE_SIZE = 10
-```
-
----
-
-# 5. Add the API request function
-
-Open `reports.ts`. Its existing `getReports` function remains in place.
-
-Add the imports:
+In `src/api/reports.ts`, import the response type and page size:
 
 ```ts
 import type { ExecutionReportPayload, Report } from '../types/report'
 import { EXECUTION_RESULTS_PAGE_SIZE } from './constants'
 ```
 
-The file also re-exports the constant:
-
-```ts
-export { EXECUTION_RESULTS_PAGE_SIZE } from './constants'
-```
-
-That allows another file to import the constant from `reports.ts`, although the page currently imports it directly from `constants.ts`.
-
-Add this request-options interface:
+Keep the options used by the request:
 
 ```ts
 interface ExecutionResultsRequestOptions extends RequestOptions {
@@ -279,11 +152,7 @@ interface ExecutionResultsRequestOptions extends RequestOptions {
 }
 ```
 
-- `extends RequestOptions` includes its optional `signal` property.
-- `reportId` is required.
-- `start` and `limit` are optional because the function supplies defaults.
-
-Then add:
+Implement the request:
 
 ```ts
 export async function getExecutionResults({
@@ -291,239 +160,81 @@ export async function getExecutionResults({
   start = 0,
   limit = EXECUTION_RESULTS_PAGE_SIZE,
   signal,
-}: ExecutionResultsRequestOptions): Promise<ExecutionReportPayload & {
-  executionReport: { total: number }
-}> {
+}: ExecutionResultsRequestOptions): Promise<ExecutionReportPayload> {
   const response = await apiClient.get<ExecutionReportPayload>(
     `/reports/${encodeURIComponent(reportId)}/results`,
     { params: { start, limit }, signal },
   )
 
-  return response.data as ExecutionReportPayload & {
-    executionReport: { total: number }
-  }
+  return response.data
 }
 ```
 
-## What this sends
-
-For report `"1"`, the first request is conceptually:
+For report `1`, page requests are:
 
 ```text
-GET /api/reports/1/results?start=0&limit=20
+/reports/1/results?start=0&limit=20
+/reports/1/results?start=20&limit=20
+/reports/1/results?start=40&limit=20
 ```
 
-The second page uses:
+`start` is a zero-based record offset. `signal` lets the hook cancel a request that is no longer relevant.
 
-```text
-GET /api/reports/1/results?start=20&limit=20
-```
+The function should return `response.data` directly. The old `executionReport` assertion is not needed because the response type now describes the actual top-level contract.
 
-The third uses `start=40`.
+## 6. Make the mock API use the new JSON
 
-## Syntax explained
-
-### `async` and `await`
+In `src/api/mockApi.ts`, replace the old data import:
 
 ```ts
-export async function getExecutionResults(...)
+import executionResults from '../data/executionResults2.json'
 ```
 
-`async` means the function returns a **Promise**: a value that will be available later, after the request finishes.
+Do not import or retain `executionResults.json`; it used the legacy `executionReport.Books[].Columns` structure and has been removed.
 
-```ts
-const response = await apiClient.get(...)
-```
-
-`await` waits for that Promise inside this function. If the request fails, the error is propagated to the caller.
-
-### Destructuring and defaults
-
-```ts
-{
-  reportId,
-  start = 0,
-  limit = EXECUTION_RESULTS_PAGE_SIZE,
-  signal,
-}
-```
-
-This extracts properties from the object passed to the function. If `start` or `limit` is omitted, its default is used.
-
-### URL and query parameters
-
-```ts
-`/reports/${encodeURIComponent(reportId)}/results`
-```
-
-`encodeURIComponent` makes the ID safe to place in a URL path segment.
-
-```ts
-{ params: { start, limit }, signal }
-```
-
-The inner `{ start, limit }` is shorthand for:
-
-```ts
-{ start: start, limit: limit }
-```
-
-Axios turns `params` into query parameters. `signal` allows the caller to cancel the request.
-
-### Type assertion
-
-```ts
-return response.data as ExecutionReportPayload & {
-  executionReport: { total: number }
-}
-```
-
-`as` tells TypeScript to treat the response as having this shape. `&` combines types.
-
-**Important:** this assertion does not check the server response. If the response lacks `executionReport` or `total`, TypeScript cannot catch that at runtime. The current mock supplies both; a real API should have a clearly agreed contract or runtime validation.
-
----
-
-# 6. Understand the shared Axios client
-
-The client already exists in `client.ts`:
-
-```ts
-export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 10000,
-})
-
-if (import.meta.env.VITE_USE_MOCK_API !== 'false') {
-  setupMockApi(apiClient)
-}
-```
-
-### Why use a shared client?
-
-Every request can reuse the same base URL and timeout rather than repeating them.
-
-- `baseURL` is added in front of paths such as `/reports/1/results`.
-- `timeout: 10000` sets a ten-second request timeout.
-- `|| '/api'` uses `/api` if the environment value is missing or empty.
-- Unless `VITE_USE_MOCK_API` is the string `"false"`, the mock is attached to this client.
-
-The mock intercepts requests **in the app**. It is not a separately running API server.
-
----
-
-# 7. Make the mock API paginate
-
-In `mockApi.ts`, import the data and constant:
-
-```ts
-import executionResults from '../data/executionResults.json'
-import { EXECUTION_RESULTS_PAGE_SIZE } from './constants'
-```
-
-Keep the existing `/reports` handler. Add this handler inside `setupMockApi`, before `return mock`:
+Paginate the `rows` array:
 
 ```ts
 mock.onGet(/\/reports\/[^/]+\/results$/).reply((config) => {
   const start = Number(config.params?.start ?? 0)
   const limit = Number(config.params?.limit ?? EXECUTION_RESULTS_PAGE_SIZE)
-  const books = executionResults.executionReport.Books
+  const rows = executionResults.rows
 
   const safeStart = Number.isFinite(start) && start > 0 ? start : 0
   const safeLimit = Number.isFinite(limit) && limit > 0
     ? limit
     : EXECUTION_RESULTS_PAGE_SIZE
 
-  const page = books.slice(safeStart, safeStart + safeLimit)
+  const page = rows.slice(safeStart, safeStart + safeLimit)
+  const numberOfRecords = rows.length
+  const numberOfPages = Math.ceil(numberOfRecords / safeLimit)
 
   return [200, {
-    executionReport: {
-      ...executionResults.executionReport,
-      Books: page,
-      total: books.length,
+    ...executionResults,
+    pagination: {
+      pageNumber: Math.floor(safeStart / safeLimit),
+      pageSize: safeLimit,
+      numberOfRecords,
+      numberOfPages,
     },
+    rows: page,
   }]
 })
 ```
 
-## How this works
+With 50 records and a page size of 20:
 
-### Match the request
+| Offset | Returned rows | UI range |
+|---:|---:|---:|
+| 0 | 20 | 1-20 |
+| 20 | 20 | 21-40 |
+| 40 | 10 | 41-50 |
 
-```ts
-mock.onGet(/\/reports\/[^/]+\/results$/)
-```
+The mock validates unusual `start` and `limit` values, then rebuilds pagination metadata from the complete dataset. The response preserves the column definitions and replaces only the `rows` array.
 
-This is a **regular expression**, used here to match URLs such as:
+## 7. Load results in a hook
 
-```text
-/reports/1/results
-/reports/2/results
-```
-
-- `\/` represents a literal `/` inside the regular expression.
-- `[^/]+` matches one or more characters other than `/`: the report ID.
-- `$` means the match ends at the end of the URL.
-
-The ID is matched but is not currently used to select different book data.
-
-### Read the parameters
-
-```ts
-const start = Number(config.params?.start ?? 0)
-```
-
-- `config` describes the intercepted request.
-- `?.` means “read this property if `params` exists.”
-- `?? 0` uses `0` if the value is `null` or `undefined`.
-- `Number(...)` converts a value to a number.
-
-`limit` works the same way, defaulting to the shared page size.
-
-### Choose the slice
-
-```ts
-const page = books.slice(safeStart, safeStart + safeLimit)
-```
-
-`slice(start, end)` returns part of an array. The start is included; the end is excluded.
-
-For a page size of 20:
-
-| Request | `slice` | Records shown to user |
-|---|---|---|
-| `start=0` | `slice(0, 20)` | 1–20 |
-| `start=20` | `slice(20, 40)` | 21–40 |
-| `start=40` | `slice(40, 60)` | 41–52 |
-
-JavaScript array indexes begin at **zero**, while the UI shows people-friendly record numbers starting at one.
-
-### Return a response
-
-```ts
-return [200, {
-  executionReport: {
-    ...executionResults.executionReport,
-    Books: page,
-    total: books.length,
-  },
-}]
-```
-
-- `200` is the HTTP success status.
-- `...executionResults.executionReport` copies existing properties from the mock report.
-- `Books: page` replaces the full book array with the requested slice.
-- `total: books.length` tells the UI how many records exist across **all** pages.
-
-The total is necessary so the table can know whether another page exists.
-
----
-
-# 8. Create the execution-results hook
-
-Create `src/hooks/useExecutionResultsData.ts`. A hook is a function that uses React hooks such as `useState` and `useEffect`. The prefix `use` tells React that it follows the normal hook rules.
-
-Start with these imports:
+Create or update `src/hooks/useExecutionResultsData.ts`:
 
 ```ts
 import axios from "axios";
@@ -531,200 +242,16 @@ import { useEffect, useState } from "react";
 
 import { EXECUTION_RESULTS_PAGE_SIZE } from "../api/constants";
 import { getExecutionResults } from "../api/reports";
-import type {
-  ExecutionColumn,
-  ExecutionColumnSource,
-  ExecutionReportPayload,
-} from "../types/report";
-```
-
-`import type` imports TypeScript-only definitions. They do not become runtime JavaScript values.
-
-## Define the hook's result shape
-
-Add the normalized result type and the hook state type:
-
-```ts
-export interface NormalizedExecutionReport {
-  columns: ExecutionColumn[];
-  rows: Record<string, unknown>[];
-  total: number;
-}
+import type { ExecutionReportPayload } from "../types/report";
 
 interface ExecutionResultsState {
-  data: NormalizedExecutionReport | null;
+  data: ExecutionReportPayload | null;
   loading: boolean;
   error: string;
 }
 ```
 
-For example, after conversion the data looks conceptually like:
-
-```ts
-{
-  columns: [
-    { description: "Title", type: "string" },
-    { description: "Price", type: "number" },
-  ],
-  rows: [
-    { Title: "The Hobbit", Price: 11.25 },
-    { Title: "Dune", Price: 10.49 },
-  ],
-  total: 52,
-}
-```
-
-`Record<string, unknown>` describes an object with string property names and values whose types are not yet known.
-
-### Why convert the data inside the hook?
-
-The API’s mock format places a `Columns` array inside each book. Converting it once gives the table a simpler job:
-
-- use `columns` for headings;
-- use `rows` for cell values;
-- use `total` for pagination.
-
-If the API changes later, you can often update the conversion function without changing the page or table.
-
-The page receives a simple, predictable shape instead of needing to understand the API's original structure.
-
-## Add the conversion function
-
-Add the function below the state interfaces:
-
-```ts
-function normalizeExecutionReport(
-  payload: ExecutionReportPayload,
-): NormalizedExecutionReport {
-  const report = payload.executionReport;
-
-  if (!report) return { columns: [], rows: [], total: 0 };
-
-  const books = report.Books ?? report.books ?? [];
-  const reportColumns = report.Columns ?? report.columns ?? [];
-
-  const columns: ExecutionColumn[] = reportColumns.map((column) => ({
-    description: column.description,
-    type: column.type,
-  }));
-
-  const rows = books.map((book) => {
-    const sourceColumns = book.Columns ?? book.columns;
-
-    if (sourceColumns) {
-      return sourceColumns.reduce<Record<string, unknown>>((row, column) => {
-        const description =
-          column.Description ?? column.description ?? column.Name ?? column.name;
-
-        if (description) row[description] = column.Value ?? column.value;
-
-        return row;
-      }, {});
-    }
-
-    if (columns.length > 0) {
-      return columns.reduce<Record<string, unknown>>((row, column) => {
-        row[column.description] = book[column.description];
-        return row;
-      }, {});
-    }
-
-    return { ...book } as Record<string, unknown>;
-  });
-
-  if (columns.length === 0 && books[0]) {
-    const sourceColumns = books[0].Columns ?? books[0].columns;
-
-    if (sourceColumns) {
-      sourceColumns.forEach((column: ExecutionColumnSource) => {
-        const description =
-          column.Description ?? column.description ?? column.Name ?? column.name;
-
-        const type = column.Type ?? column.type;
-
-        if (description && type) {
-          columns.push({ description, type });
-        }
-      });
-    }
-  }
-
-  const total = report.total ?? report.Total ?? rows.length;
-
-  return { columns, rows, total };
-}
-```
-
-### Walk through it
-
-#### Find the books
-
-```ts
-const books = report.Books ?? report.books ?? [];
-```
-
-Try `Books`, then `books`, then an empty array. `??` only falls back when the value is `null` or `undefined`.
-
-#### Convert each book into a row
-
-```ts
-const rows = books.map((book) => {
-  // ...
-});
-```
-
-`map` creates a new array by running the function once for each book.
-
-For a book with columns such as:
-
-```ts
-[
-  { Description: "Title", Value: "Dune" },
-  { Description: "Price", Value: 10.49 },
-]
-```
-
-the `reduce` produces:
-
-```ts
-{ Title: "Dune", Price: 10.49 }
-```
-
-This line adds each value:
-
-```ts
-row[description] = column.Value ?? column.value;
-```
-
-Square brackets are used because the property name is held in the variable `description`.
-
-The `??` also preserves valid values such as `false` and `0`.
-
-#### Decide the headers
-
-For the current mock data, the API does not provide a separate report-level list of columns. Therefore, the code uses the first book’s `Columns` array:
-
-```ts
-if (columns.length === 0 && books[0]) {
-  // Add descriptions and types from the first book.
-}
-```
-
-**Current assumption:** the books on a page have consistent columns. If later books contain additional columns not present in the first one, those extra columns will not automatically become headers.
-
-#### Read the total
-
-```ts
-const total = report.total ?? report.Total ?? rows.length;
-```
-
-The mock supplies `total`. If it is absent, the fallback is the number of rows in the current response. That fallback cannot tell the UI about additional pages, so a real paginated API should return the full total.
-
----
-
-# 9. Add hook state and the request effect
-
-After `normalizeExecutionReport`, add the hook:
+The hook can store the API payload directly because rows already have the shape consumed by the table:
 
 ```ts
 export default function useExecutionResultsData(
@@ -755,7 +282,7 @@ export default function useExecutionResultsData(
       .then((payload) => {
         if (!controller.signal.aborted) {
           setState({
-            data: normalizeExecutionReport(payload),
+            data: payload,
             loading: false,
             error: "",
           });
@@ -778,131 +305,35 @@ export default function useExecutionResultsData(
 }
 ```
 
-## What the hook owns
+There is no longer a normalization function converting `Books[].Columns[]` into record objects. The UI uses the API's `entries` arrays by position.
 
-The hook owns the data-request concerns:
+The effect reruns when either `reportId` or `start` changes. Its cleanup aborts an obsolete request when the user changes reports or pages.
 
-- calling `getExecutionResults`;
-- showing the current request state;
-- converting the API response;
-- reporting failures;
-- cancelling obsolete requests.
+## 8. Render the page
 
-The page does not need to know how a book is converted into a row.
-
-## Why the arguments matter
-
-```ts
-useExecutionResultsData(reportId, start)
-```
-
-- `reportId` selects the report.
-- `start` selects the first record for the requested page.
-
-The dependency array contains both:
-
-```ts
-[reportId, start]
-```
-
-Therefore, changing the report or clicking Next/Previous runs the effect again.
-
-## Why the hook resets loading state
-
-```ts
-setState({ data: null, loading: true, error: "" });
-```
-
-This clears the previous page while the next request is in progress. The page can then display its loading message and cannot accidentally show an old page during the request.
-
-## Cancellation
-
-```ts
-return () => controller.abort();
-```
-
-This cleanup runs before the effect is run again and when the component is removed. It prevents an older response from updating the hook after a newer page has been requested.
-
----
-
-# 10. Add the page component and use the hooks
-
-Open `ExecutionResultsPage.tsx`. Add the imports:
+In `src/pages/ExecutionResultsPage.tsx`, import the table, hook, report hook, and layout:
 
 ```tsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import DynamicResultsTable from "../components/DynamicResultsTable";
-import { EXECUTION_RESULTS_PAGE_SIZE } from "../api/constants";
 import useExecutionResultsData from "../hooks/useExecutionResultsData";
 import useReportsData from "../hooks/useReportsData";
 import PageLayout from "../layouts/PageLayout";
 ```
 
-Start the page component:
+The page owns the zero-based offset:
 
 ```tsx
-export default function ExecutionResultsPage() {
-  const { id } = useParams<{ id: string }>();
-  const [start, setStart] = useState(0);
-
-  const { data: reports } = useReportsData();
-  const {
-    data: result,
-    loading,
-    error,
-  } = useExecutionResultsData(id, start);
-
-  const title =
-    reports?.find((report) => report.id === id)?.title ?? "Report Name";
-
-  // Reset and JSX go here.
-}
-```
-
-## State explained
-
-The page only owns the current pagination offset:
-
-```ts
-const [start, setStart] = useState(0);
-```
-
-- `start` is the current zero-based offset.
-- `setStart(...)` updates it.
-- React re-renders the component after the state changes.
-
-`useParams` reads the route:
-
-```ts
 const { id } = useParams<{ id: string }>();
+const [start, setStart] = useState(0);
+const { data: reports } = useReportsData();
+const { data: result, loading, error } =
+  useExecutionResultsData(id, start);
 ```
 
-For `/reports/1`, `id` is `"1"`.
-
-`useReportsData()` loads the report list. The hook is called without arguments because the reports list always makes the same request.
-
-`useExecutionResultsData(id, start)` loads the currently selected result page. Its arguments explain which data should be fetched.
-
-## Derive the title
-
-```ts
-const title =
-  reports?.find((report) => report.id === id)?.title ?? "Report Name";
-```
-
-The title does not need its own state because it can be calculated from the reports and the route ID.
-
-- `?.` safely reads the property while `reports` may still be `null`.
-- `find` returns the matching report, if one exists.
-- `?? "Report Name"` supplies a fallback.
-
----
-
-# 11. Reset the offset when the report changes
-
-Inside the page component, after the hook calls, add:
+Reset pagination when the route selects another report:
 
 ```tsx
 useEffect(() => {
@@ -910,121 +341,61 @@ useEffect(() => {
 }, [id]);
 ```
 
-`useEffect` runs code after React renders. Its second argument is a **dependency array**:
-
-```ts
-[id]
-```
-
-React re-runs this effect when `id` changes. Resetting the offset means that navigating to another report starts at its first page.
-
----
-
-# 12. Render the page
-
-Still inside `ExecutionResultsPage`, add the return statement after the reset effect:
+Render the table with API pagination metadata:
 
 ```tsx
-return (
-  <PageLayout>
-    <h1>{title}</h1>
+<PageLayout>
+  <h1>{title}</h1>
 
-    {loading && <p role="status">Loading execution results...</p>}
+  {loading && <p role="status">Loading execution results...</p>}
+  {error && <p role="alert">{error}</p>}
 
-    {error && <p role="alert">{error}</p>}
-
-    {!loading && !error && result && (
-      <DynamicResultsTable
-        columns={result.columns}
-        rows={result.rows}
-        start={start}
-        pageSize={EXECUTION_RESULTS_PAGE_SIZE}
-        total={result.total}
-        onPageChange={setStart}
-      />
-    )}
-  </PageLayout>
-);
+  {!loading && !error && result && (
+    <DynamicResultsTable
+      columns={result.columns}
+      rows={result.rows}
+      pagination={result.pagination}
+      onPageChange={setStart}
+    />
+  )}
+</PageLayout>
 ```
 
-Close the function with `}`.
+The page no longer calculates `pageSize` or `total` props separately. Those values come from `result.pagination`.
 
-### JSX syntax
+## 9. Create the dynamic table
 
-```tsx
-{loading && <p>Loading...</p>}
-```
-
-This displays the paragraph only when `loading` is true.
+In `src/components/DynamicResultsTable.tsx`, define props that match the response:
 
 ```tsx
-{!loading && !error && result && (...)}
-```
-
-`!` means “not.” The table appears only when:
-
-- the request is no longer loading;
-- there is no error; and
-- the hook has returned normalized result data.
-
-### Passing props
-
-```tsx
-<DynamicResultsTable
-  columns={result.columns}
-  rows={result.rows}
-  onPageChange={setStart}
-/>
-```
-
-These are **props**: values passed from a parent component to a child component.
-
-`onPageChange={setStart}` passes the function itself. The table can call it with a new offset, causing the page to request another set of records.
-
-`PageLayout` provides the shared page wrapper and spacing.
-
----
-
-# 13. Create the reusable table
-
-Create `DynamicResultsTable.tsx`.
-
-## Imports and props
-
-```tsx
-import "./DynamicResultsTable.scss";
-
-import type { ExecutionColumn } from "../types/report";
+import type {
+  ExecutionColumn,
+  ExecutionPagination,
+  ExecutionRow,
+} from "../types/report";
 
 export interface DynamicResultsTableProps {
   columns: ExecutionColumn[];
-  rows: Record<string, unknown>[];
-  start: number;
-  pageSize: number;
-  total: number;
+  rows: ExecutionRow[];
+  pagination: ExecutionPagination;
   onPageChange: (start: number) => void;
 }
 ```
 
-The props describe everything the table needs. It does **not** make API requests itself.
-
-```ts
-onPageChange: (start: number) => void;
-```
-
-This describes a function that accepts a number and does not return a useful value. The table calls it when the user selects a page.
-
-## Format cell values
-
-Add:
+Format values according to `dataType`:
 
 ```tsx
-function formatValue(value: unknown, type: ExecutionColumn["type"]) {
+function formatValue(
+  value: unknown,
+  type: ExecutionColumn["dataType"],
+) {
   if (value === null || value === undefined || value === "") return "-";
-
   if (type === "boolean") return value ? "Yes" : "No";
 
-  if (type === "number" && typeof value === "number") {
+  if (
+    (type === "integer" || type === "numeric") &&
+    typeof value === "number"
+  ) {
     return new Intl.NumberFormat(undefined, {
       maximumFractionDigits: 2,
     }).format(value);
@@ -1034,36 +405,24 @@ function formatValue(value: unknown, type: ExecutionColumn["type"]) {
 }
 ```
 
-- `ExecutionColumn["type"]` reuses the type of the `type` property from `ExecutionColumn`.
-- `===` compares values.
-- `||` means “or.”
-- The ternary `value ? "Yes" : "No"` selects one of two results.
-- `typeof value === "number"` checks the value before treating it as a number.
-- `Intl.NumberFormat` formats numbers using the environment’s locale.
-- `String(value)` converts other values to displayable text.
-
-**Assumption:** a column declared as boolean actually contains a boolean. For example, the string `"false"` is truthy in JavaScript and would display as “Yes.” A real API should send actual `true`/`false` values.
-
-## Define the component
-
-Add:
+Render metadata and rows:
 
 ```tsx
 export function DynamicResultsTable({
   columns,
   rows,
-  start,
-  pageSize,
-  total,
+  pagination,
   onPageChange,
 }: DynamicResultsTableProps) {
   if (columns.length === 0) {
     return <p>No result columns available.</p>;
   }
 
-  const end = Math.min(start + rows.length, total);
-  const canGoPrevious = start > 0;
-  const canGoNext = start + pageSize < total;
+  const start = pagination.pageNumber * pagination.pageSize;
+  const end = Math.min(start + rows.length, pagination.numberOfRecords);
+  const canGoPrevious = pagination.pageNumber > 0;
+  const canGoNext =
+    pagination.pageNumber + 1 < pagination.numberOfPages;
 
   return (
     <div className="dynamic-results">
@@ -1073,23 +432,29 @@ export function DynamicResultsTable({
         aria-label="Execution results table"
         tabIndex={0}
       >
-        <table className="dynamic-results-table" aria-label="Execution results">
+        <table
+          className="dynamic-results-table"
+          aria-label="Execution results"
+        >
           <thead>
             <tr>
               {columns.map((column) => (
-                <th scope="col" key={column.description}>
-                  {column.description}
+                <th scope="col" key={column.id}>
+                  {column.displayName}
                 </th>
               ))}
             </tr>
           </thead>
 
           <tbody>
-            {rows.map((row, index) => (
-              <tr key={index}>
-                {columns.map((column) => (
-                  <td key={column.description}>
-                    {formatValue(row[column.description], column.type)}
+            {rows.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {columns.map((column, columnIndex) => (
+                  <td key={column.id}>
+                    {formatValue(
+                      row.entries[columnIndex],
+                      column.dataType,
+                    )}
                   </td>
                 ))}
               </tr>
@@ -1105,21 +470,23 @@ export function DynamicResultsTable({
         <button
           type="button"
           disabled={!canGoPrevious}
-          onClick={() => onPageChange(Math.max(0, start - pageSize))}
+          onClick={() =>
+            onPageChange(Math.max(0, start - pagination.pageSize))
+          }
         >
           Previous
         </button>
 
         <span role="status">
-          {total === 0
+          {pagination.numberOfRecords === 0
             ? "No records"
-            : `Showing ${start + 1}-${end} of ${total}`}
+            : `Showing ${start + 1}-${end} of ${pagination.numberOfRecords}`}
         </span>
 
         <button
           type="button"
           disabled={!canGoNext}
-          onClick={() => onPageChange(start + pageSize)}
+          onClick={() => onPageChange(start + pagination.pageSize)}
         >
           Next
         </button>
@@ -1128,106 +495,32 @@ export function DynamicResultsTable({
   );
 }
 
-export const dynamicResultsTable = DynamicResultsTable;
 export default DynamicResultsTable;
 ```
 
-The last two lines provide both a named lowercase alias and the default export. The page uses the default import named `DynamicResultsTable`. React component names conventionally begin with a capital letter.
+Important rendering details:
 
-## How the dynamic columns work
+- `column.id` is the stable React key.
+- `column.displayName` is the visible header.
+- `column.dataType` controls formatting.
+- `row.entries[columnIndex]` connects each value to its column by position.
+- `pageNumber`, `numberOfPages`, and `numberOfRecords` come from the API, rather than being rebuilt separately in the table.
 
-```tsx
-{columns.map((column) => (
-  <th scope="col" key={column.description}>
-    {column.description}
-  </th>
-))}
-```
-
-For every column, `map` produces a `<th>` heading. No particular book fields are hard-coded into the table.
-
-- `scope="col"` identifies the cell as a column heading.
-- `key` helps React identify items in a rendered list.
-- The current implementation assumes descriptions are unique within a table.
-
-## How the rows and cells work
-
-```tsx
-{rows.map((row, index) => (
-  <tr key={index}>
-    {columns.map((column) => (
-      <td key={column.description}>
-        {formatValue(row[column.description], column.type)}
-      </td>
-    ))}
-  </tr>
-))}
-```
-
-There are two loops:
-
-1. The outer `map` creates a `<tr>` for each row.
-2. The inner `map` creates a `<td>` for each column.
-
-If `column.description` is `"Title"`, then:
-
-```ts
-row[column.description]
-```
-
-is equivalent to:
-
-```ts
-row["Title"]
-```
-
-The current implementation uses the row’s array index as its key. If the API later supplies stable unique row IDs, those would be preferable—especially if rows can be reordered or edited.
-
-## How pagination works
-
-```ts
-const canGoPrevious = start > 0;
-const canGoNext = start + pageSize < total;
-```
-
-At the start, `start` is `0`, so Previous is disabled.
-
-With `start=40`, `pageSize=20`, and `total=52`:
+For the mock's final page:
 
 ```text
-40 + 20 < 52  →  false
+pageNumber = 2
+pageSize = 20
+numberOfPages = 3
+start = 2 * 20 = 40
+end = 40 + 10 = 50
 ```
 
-So Next is disabled on the last page.
+The row index is currently used as the React row key. If the API adds a stable record identifier, use that value instead.
 
-When Next is clicked:
+## 10. Keep the table styling
 
-```tsx
-onClick={() => onPageChange(start + pageSize)}
-```
-
-The arrow function delays the call until the click occurs. It calls the parent’s `setStart`, which triggers the results effect to fetch again.
-
-Previous uses:
-
-```ts
-Math.max(0, start - pageSize)
-```
-
-That prevents the offset from going below zero.
-
-### Accessibility
-
-- `aria-label` gives the table and pagination region useful names.
-- `role="status"` identifies changing status text.
-- `tabIndex={0}` makes the horizontally scrollable region keyboard-focusable.
-- `disabled` prevents unavailable pagination actions.
-
----
-
-# 14. Add table styling
-
-Create `DynamicResultsTable.scss`:
+The table uses `src/components/DynamicResultsTable.scss`:
 
 ```scss
 .dynamic-results {
@@ -1261,78 +554,60 @@ Create `DynamicResultsTable.scss`:
     background: #f6f8fb;
   }
 }
-
-.dynamic-results-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
-  button {
-    font: inherit;
-    padding: 8px 12px;
-    border: 1px solid #dbe2ea;
-    border-radius: 4px;
-    background: white;
-  }
-
-  button:not(:disabled) {
-    cursor: pointer;
-  }
-
-  button:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-  }
-
-  span {
-    color: #526074;
-  }
-}
-
-@media (max-width: 600px) {
-  .dynamic-results-pagination {
-    align-items: stretch;
-    flex-wrap: wrap;
-
-    span {
-      order: -1;
-      width: 100%;
-      text-align: center;
-    }
-  }
-}
 ```
 
-### Why these styles?
+The existing `.table-container` style provides horizontal scrolling, and the pagination style arranges Previous, status text, and Next controls.
 
-- `display: flex` and `gap` arrange the table and controls with spacing.
-- `min-width: 720px` gives the columns room.
-- `border-collapse: collapse` combines table borders.
-- The media query adjusts the pagination layout on narrow screens.
-- SCSS allows nesting selectors, such as `button` inside `.dynamic-results-pagination`.
+## 11. Update tests for the positional format
 
-The scrollable wrapper uses `.table-container`, whose `overflow-x: auto` style currently lives in `ReportTable.scss`. That stylesheet is imported by the reports table. If you reuse the dynamic table in an app without that stylesheet, give its wrapper the same horizontal-scroll styling or move the shared style to a shared stylesheet.
+Mock execution responses in tests must now use the top-level shape:
 
----
+```ts
+mock.onGet("/reports/1/results").reply(200, {
+  pagination: {
+    pageNumber: 0,
+    pageSize: 20,
+    numberOfRecords: 21,
+    numberOfPages: 2,
+  },
+  columns: [
+    { id: "title", displayName: "Title", dataType: "string" },
+    { id: "in_stock", displayName: "In Stock", dataType: "boolean" },
+  ],
+  rows: [
+    { entries: ["The Hobbit", true] },
+  ],
+})
+```
 
-# 15. Try it manually
+Tests should verify:
 
-Start the existing development server:
+- headers use `displayName`;
+- cells read values from `entries` by column position;
+- numeric values are formatted;
+- boolean values display as `Yes` or `No`;
+- Next requests the next `start` offset;
+- the final page disables Next;
+- the first page disables Previous;
+- errors still display an alert;
+- the mock returns 20, 20, and 10 rows for its three pages.
+
+## 12. Verify the result
+
+Run:
 
 ```sh
-npm run dev
+npm test
+npm run build
 ```
 
-Open the URL Vite prints, then:
+The expected behavior is:
 
-1. Click **Monthly sales** on the reports page.
-2. Check that the heading says **Monthly sales**.
-3. Check that the book columns are generated from the mock data.
-4. The first page should show **1–20 of 52**.
-5. Click **Next**: it should show **21–40 of 52**.
-6. Click **Next** again: it should show **41–52 of 52**, and Next should be disabled.
-7. Click **Previous** to return to the second page.
-8. Try opening `/reports/2` directly: the heading should be **Customer feedback**.
+1. Open the reports list.
+2. Select **Monthly sales**.
+3. The first page shows 1-20 of 50.
+4. Next shows 21-40 of 50.
+5. Next shows 41-50 of 50 and becomes disabled.
+6. Previous returns to the prior page.
 
-For now, both reports show the same book dataset; the mock does not yet vary results by report ID.
+All 50 mock rows should align with the 10 columns in `executionResults2.json`.

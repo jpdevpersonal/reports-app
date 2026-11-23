@@ -4,9 +4,9 @@ import userEvent from "@testing-library/user-event";
 import DynamicResultsTable from "./DynamicResultsTable";
 
 const columns = [
-  { description: "Title", type: "string" as const },
-  { description: "Price", type: "number" as const },
-  { description: "In Stock", type: "boolean" as const },
+  { id: "title", displayName: "Title", dataType: "string" as const },
+  { id: "price", displayName: "Price", dataType: "numeric" as const },
+  { id: "in_stock", displayName: "In Stock", dataType: "boolean" as const },
 ];
 
 it("renders dynamic columns and formatted row values", () => {
@@ -14,12 +14,15 @@ it("renders dynamic columns and formatted row values", () => {
     <DynamicResultsTable
       columns={columns}
       rows={[
-        { Title: "Atomic Habits", Price: 16.99, "In Stock": true },
-        { Title: "The Hobbit", Price: 11.25, "In Stock": false },
+        { entries: ["Atomic Habits", 16.99, true] },
+        { entries: ["The Hobbit", 11.25, false] },
       ]}
-      start={0}
-      pageSize={20}
-      total={12}
+      pagination={{
+        pageNumber: 0,
+        pageSize: 20,
+        numberOfRecords: 12,
+        numberOfPages: 1,
+      }}
       onPageChange={vi.fn()}
     />,
   );
@@ -41,10 +44,13 @@ it("requests the next and previous start points", async () => {
   const { rerender } = render(
     <DynamicResultsTable
       columns={columns}
-      rows={[{ Title: "Atomic Habits", Price: 16.99, "In Stock": true }]}
-      start={0}
-      pageSize={20}
-      total={25}
+      rows={[{ entries: ["Atomic Habits", 16.99, true] }]}
+      pagination={{
+        pageNumber: 0,
+        pageSize: 20,
+        numberOfRecords: 25,
+        numberOfPages: 2,
+      }}
       onPageChange={onPageChange}
     />,
   );
@@ -55,10 +61,13 @@ it("requests the next and previous start points", async () => {
   rerender(
     <DynamicResultsTable
       columns={columns}
-      rows={[{ Title: "The Hobbit", Price: 11.25, "In Stock": true }]}
-      start={20}
-      pageSize={20}
-      total={25}
+      rows={[{ entries: ["The Hobbit", 11.25, true] }]}
+      pagination={{
+        pageNumber: 1,
+        pageSize: 20,
+        numberOfRecords: 25,
+        numberOfPages: 2,
+      }}
       onPageChange={onPageChange}
     />,
   );

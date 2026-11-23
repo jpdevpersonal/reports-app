@@ -1,9 +1,7 @@
-
-.import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import DynamicResultsTable from "../components/DynamicResultsTable";
-import { EXECUTION_RESULTS_PAGE_SIZE } from "../api/constants";
 import useExecutionResultsData from "../hooks/useExecutionResultsData";
 import useReportsData from "../hooks/useReportsData";
 import PageLayout from "../layouts/PageLayout";
@@ -28,9 +26,7 @@ export default function ExecutionResultsPage() {
         <DynamicResultsTable
           columns={result.columns}
           rows={result.rows}
-          start={start}
-          pageSize={EXECUTION_RESULTS_PAGE_SIZE}
-          total={result.total}
+          pagination={result.pagination}
           onPageChange={setStart}
         />
       )}

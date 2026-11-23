@@ -1,76 +1,112 @@
 {
-    "pagination": {
-        "pageNumber": 0,
-        "pageSize": 20,
-        "numberOfRecords": 100,
-        "numberOfPages":1
+  "pagination": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "numberOfRecords": 50,
+    "numberOfPages": 3
+  },
+  "columns": [
+    {
+      "id": "book_id",
+      "displayName": "Book_id",
+      "dataType": "string"
     },
-    "columns":[
-        {
-            "id": "book_id",
-            "displayName": "Book_id",
-            "dataType": "string"
-        },
-        {
-            "id": "title",
-            "displayName": "title",
-            "dataType": "string"
-        },
-        {
-            "id": "author",
-            "displayName": "Author",
-            "dataType": "string"
-        },
-        {
-            "id": "genre",
-            "displayName": "genre",
-            "dataType": "string"
-        },
-        {
-            "id": "isbn",
-            "displayName": "isbn",
-            "dataType": "string"
-        },
-        {
-            "id": "publisher",
-            "displayName": "publisher",
-            "dataType": "string"
-        },
-        {
-            "id": "publication_year",
-            "displayName": "publicationyear",
-            "dataType": "integer"
-        },
-        {
-            "id": "price",
-            "displayName": "price",
-            "dataType": "numeric"
-        },
-        {
-            "id": "stock_quantity",
-            "displayName": "stock quantity",
-            "dataType": "numeric"
-        },
-        {
-            "id": "created_at",
-            "displayName": "created at",
-            "dataType": "timestamp"
-        }
-    ],
-    "rows": [
-        {
-         "entries": [
-             1,
-             "Animal Farm",
-             "George Orewell",
-             "Political Satire",
-             "9029810",
-             "Pengui books",
-             1949,
-             19.99,
-             100,
-             "2024-06-01T12:00:00Z"
-         ]
-        }
-    ]
+    {
+      "id": "title",
+      "displayName": "title",
+      "dataType": "string"
+    },
+    {
+      "id": "author",
+      "displayName": "Author",
+      "dataType": "string"
+    },
+    {
+      "id": "genre",
+      "displayName": "genre",
+      "dataType": "string"
+    },
+    {
+      "id": "isbn",
+      "displayName": "isbn",
+      "dataType": "string"
+    },
+    {
+      "id": "publisher",
+      "displayName": "publisher",
+      "dataType": "string"
+    },
+    {
+      "id": "publication_year",
+      "displayName": "publicationyear",
+      "dataType": "integer"
+    },
+    {
+      "id": "price",
+      "displayName": "price",
+      "dataType": "numeric"
+    },
+    {
+      "id": "stock_quantity",
+      "displayName": "stock quantity",
+      "dataType": "numeric"
+    },
+    {
+      "id": "created_at",
+      "displayName": "created at",
+      "dataType": "timestamp"
+    }
+  ],
+  "rows": [
+    { "entries": [1, "Animal Farm", "George Orewell", "Political Satire", "9029810", "Pengui books", 1949, 19.99, 100, "2024-06-01T12:00:00Z"] },
+    { "entries": [2, "The Clockmaker's Orchard", "Elena Marlow", "Fantasy", "9781730010011", "Lantern House", 2018, 17.95, 34, "2024-06-02T09:15:00Z"] },
+    { "entries": [3, "Letters from Aster Bay", "Milo Hart", "Historical Fiction", "9781730010028", "Harborlight Press", 2021, 21.5, 62, "2024-06-03T14:30:00Z"] },
+    { "entries": [4, "A Map of Quiet Places", "Nora Vale", "Travel", "9781730010035", "Wandering Oak", 2019, 24, 18, "2024-06-04T11:45:00Z"] },
+    { "entries": [5, "Signals at Dawn", "Elias Wren", "Science Fiction", "9781730010042", "Nova Quill", 2023, 18.75, 77, "2024-06-05T16:20:00Z"] },
+    { "entries": [6, "The Paper Kingdom", "Amara Finch", "Young Adult", "9781730010059", "Blue Finch Books", 2020, 14.99, 46, "2024-06-06T08:10:00Z"] },
+    { "entries": [7, "Winter on Briar Lane", "Clara North", "Romance", "9781730010066", "Silver Petal Press", 2017, 12.5, 29, "2024-06-07T13:25:00Z"] },
+    { "entries": [8, "The Geometry of Rain", "Theo Mercer", "Literary Fiction", "9781730010073", "Northstar Editions", 2022, 22.25, 51, "2024-06-08T10:05:00Z"] },
+    { "entries": [9, "A Pocket Guide to Lost Stars", "Juniper Reed", "Science", "9781730010080", "Celestial Ink", 2024, 27.99, 23, "2024-06-09T15:50:00Z"] },
+    { "entries": [10, "Beneath the Painted Bridge", "Owen Bell", "Mystery", "9781730010097", "Copper Key Press", 2020, 16.4, 39, "2024-06-10T12:35:00Z"] },
+    { "entries": [11, "Cedar and Smoke", "Lena Ashby", "Adventure", "9781730010103", "Mountain Gate", 2016, 19.25, 14, "2024-06-11T07:45:00Z"] },
+    { "entries": [12, "The Last Teacup", "Beatrice Holt", "Cozy Mystery", "9781730010110", "Rosewood Press", 2019, 13.95, 68, "2024-06-12T18:00:00Z"] },
+    { "entries": [13, "Cities Built from Echoes", "Darius Cole", "Speculative Fiction", "9781730010127", "Afterlight Books", 2023, 23.5, 31, "2024-06-13T09:40:00Z"] },
+    { "entries": [14, "Wildflower Logic", "Mae Linwood", "Poetry", "9781730010134", "Meadow Verse", 2021, 11.99, 84, "2024-06-14T14:15:00Z"] },
+    { "entries": [15, "The Borrowed Horizon", "Samir Quill", "Literary Fiction", "9781730010141", "Open Window Press", 2018, 20.75, 26, "2024-06-15T11:20:00Z"] },
+    { "entries": [16, "Notes for a Moon Garden", "Iris Calder", "Gardening", "9781730010158", "Green Spade", 2022, 25.5, 43, "2024-06-16T17:30:00Z"] },
+    { "entries": [17, "The Thirteenth Bookmark", "Felix Rowan", "Mystery", "9781730010165", "Amber Door Books", 2020, 15.99, 58, "2024-06-17T10:55:00Z"] },
+    { "entries": [18, "Tides in a Glass Jar", "Mira Sloane", "Contemporary Fiction", "9781730010172", "Saltwind Press", 2024, 18.5, 72, "2024-06-18T12:05:00Z"] },
+    { "entries": [19, "The Orchard of Small Suns", "Tessa Bloom", "Fantasy", "9781730010189", "Golden Leaf", 2021, 17.25, 37, "2024-06-19T08:30:00Z"] },
+    { "entries": [20, "A History of Tomorrow", "Ravi Ellery", "History", "9781730010196", "Foundry House", 2015, 29.95, 19, "2024-06-20T16:45:00Z"] },
+    { "entries": [21, "Clouds Over North Station", "Hannah Pike", "Thriller", "9781730010202", "Signal Line Books", 2023, 19.75, 53, "2024-06-21T13:00:00Z"] },
+    { "entries": [22, "The Alibi Garden", "Oscar Wynn", "Mystery", "9781730010219", "Foxglove Press", 2018, 14.5, 25, "2024-06-22T10:10:00Z"] },
+    { "entries": [23, "Seven Recipes for Thunder", "Priya Moss", "Cookbook", "9781730010226", "Copper Pan", 2022, 31, 67, "2024-06-23T15:35:00Z"] },
+    { "entries": [24, "Footsteps in the Archive", "Gideon Shaw", "History", "9781730010233", "Parchment Hall", 2017, 26.25, 12, "2024-06-24T09:05:00Z"] },
+    { "entries": [25, "The Lantern Collector", "Sofia Drake", "Adventure", "9781730010240", "Ember Road", 2020, 18.9, 45, "2024-06-25T17:55:00Z"] },
+    { "entries": [26, "Every River Remembers", "Jonah Vale", "Nature Writing", "9781730010257", "Clearwater Books", 2024, 22.99, 32, "2024-06-26T11:25:00Z"] },
+    { "entries": [27, "The Art of Small Machines", "Mei Corbin", "Technology", "9781730010264", "Circuit House", 2021, 34.5, 28, "2024-06-27T14:40:00Z"] },
+    { "entries": [28, "When the Bellflowers Ring", "Ada Sterling", "Romance", "9781730010271", "Mayfair Meadow", 2019, 13.75, 61, "2024-06-28T08:50:00Z"] },
+    { "entries": [29, "A Cabinet of Comets", "Leonard Frost", "Science", "9781730010288", "Deep Sky Press", 2023, 28.25, 22, "2024-06-29T12:15:00Z"] },
+    { "entries": [30, "The Violet Atlas", "Keira Moss", "Fantasy", "9781730010295", "Wyrmwood House", 2022, 21.95, 74, "2024-06-30T16:05:00Z"] },
+    { "entries": [31, "Postcards from Ember Island", "Nadia Brook", "Travel", "9781730010301", "Compass & Cove", 2018, 16.8, 36, "2024-07-01T10:30:00Z"] },
+    { "entries": [32, "The Silent Observatory", "Malcolm Reed", "Science Fiction", "9781730010318", "Orbit & Oak", 2021, 20.5, 49, "2024-07-02T13:50:00Z"] },
+    { "entries": [33, "Moss on the Moon", "Lila Arden", "Children's Fiction", "9781730010325", "Bright Acorn", 2024, 10.99, 93, "2024-07-03T09:20:00Z"] },
+    { "entries": [34, "The Brass Sparrow", "Edwin Cross", "Steampunk", "9781730010332", "Gearwheel Books", 2016, 17.6, 17, "2024-07-04T15:10:00Z"] },
+    { "entries": [35, "An Atlas of Almost", "Celia March", "Self-Help", "9781730010349", "Daybreak House", 2020, 19.95, 80, "2024-07-05T11:40:00Z"] },
+    { "entries": [36, "Midnight at the Glasshouse", "Victor Ames", "Gothic Fiction", "9781730010356", "Ravenleaf Press", 2019, 15.5, 41, "2024-07-06T18:15:00Z"] },
+    { "entries": [37, "The Beekeeper's Almanac", "Anya Field", "Nature Writing", "9781730010363", "Honeycomb Editions", 2022, 23.75, 56, "2024-07-07T08:05:00Z"] },
+    { "entries": [38, "Rooms with No Doors", "Pavel Hart", "Mystery", "9781730010370", "Threshold Books", 2023, 18.25, 30, "2024-07-08T14:55:00Z"] },
+    { "entries": [39, "A Theory of Bluebirds", "Cora Bell", "Poetry", "9781730010387", "Feather & Finch", 2017, 12.75, 65, "2024-07-09T10:45:00Z"] },
+    { "entries": [40, "The Cinnamon Conspiracy", "Rowan Tate", "Cozy Mystery", "9781730010394", "Clover Street", 2024, 14.95, 88, "2024-07-10T16:25:00Z"] },
+    { "entries": [41, "Walking Through Static", "Dorian Pike", "Science Fiction", "9781730010400", "Frequency House", 2020, 22.4, 33, "2024-07-11T12:50:00Z"] },
+    { "entries": [42, "The Museum of Departures", "Esme Laurent", "Literary Fiction", "9781730010417", "Marble Hall Press", 2018, 20.9, 21, "2024-07-12T09:35:00Z"] },
+    { "entries": [43, "Salt, Stone, and Song", "Imogen West", "Fantasy", "9781730010424", "Tidal Rune", 2021, 18.65, 70, "2024-07-13T15:05:00Z"] },
+    { "entries": [44, "The Practical Stargazer", "Noah Voss", "Science", "9781730010431", "Clear Night Books", 2022, 27.5, 24, "2024-07-14T11:00:00Z"] },
+    { "entries": [45, "Five Summers in June", "Marina Sol", "Romance", "9781730010448", "Sunroom Press", 2019, 13.5, 59, "2024-07-15T17:40:00Z"] },
+    { "entries": [46, "The Ironwood Index", "Caleb Thorne", "Thriller", "9781730010455", "Black Pine Books", 2023, 19.4, 42, "2024-07-16T10:20:00Z"] },
+    { "entries": [47, "Breakfast with Ghosts", "Willa Crane", "Humor", "9781730010462", "Morning Bell", 2020, 14.25, 76, "2024-07-17T13:10:00Z"] },
+    { "entries": [48, "The Weather Beneath Us", "Alden Grey", "Literary Fiction", "9781730010479", "Low Cloud Press", 2024, 23.95, 35, "2024-07-18T08:40:00Z"] },
+    { "entries": [49, "A Field Guide to Fireflies", "Petra Lane", "Nature Writing", "9781730010486", "Little Lantern", 2021, 16.99, 63, "2024-07-19T16:35:00Z"] },
+    { "entries": [50, "The Endless Reading Room", "Silas Moon", "Magical Realism", "9781730010493", "Quiet Hours Press", 2022, 24.5, 47, "2024-07-20T12:20:00Z"] }
+  ]
 }

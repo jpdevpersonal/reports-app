@@ -7,37 +7,32 @@ export interface Report {
   content: string
 }
 
-export type ExecutionColumnType = 'string' | 'number' | 'boolean'
+export type ExecutionColumnDataType =
+  | 'string'
+  | 'integer'
+  | 'numeric'
+  | 'boolean'
+  | 'timestamp'
 
 export interface ExecutionColumn {
-  description: string
-  type: ExecutionColumnType
+  id: string
+  displayName: string
+  dataType: ExecutionColumnDataType
 }
 
-export interface ExecutionColumnSource {
-  Description?: string
-  description?: string
-  Name?: string
-  name?: string
-  Type?: ExecutionColumnType
-  type?: ExecutionColumnType
-  Value?: unknown
-  value?: unknown
+export interface ExecutionRow {
+  entries: unknown[]
 }
 
-export interface ExecutionBookSource {
-  Columns?: ExecutionColumnSource[]
-  columns?: ExecutionColumnSource[]
-  [key: string]: unknown
+export interface ExecutionPagination {
+  pageNumber: number
+  pageSize: number
+  numberOfRecords: number
+  numberOfPages: number
 }
 
 export interface ExecutionReportPayload {
-  executionReport?: {
-    Books?: ExecutionBookSource[]
-    books?: ExecutionBookSource[]
-    Columns?: ExecutionColumn[]
-    columns?: ExecutionColumn[]
-    total?: number
-    Total?: number
-  }
+  pagination: ExecutionPagination
+  columns: ExecutionColumn[]
+  rows: ExecutionRow[]
 }
