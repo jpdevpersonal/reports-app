@@ -11,9 +11,8 @@ Reports list
     │
     ▼
 ExecutionResultsPage
-    ├── Loads reports to find the selected report's title
-    ├── Requests a page of results from the API
-    ├── Converts the API response into a table-friendly shape
+    ├── Uses hooks to load reports and execution results
+    ├── Owns the current pagination start point
     └── Passes the columns and rows to DynamicResultsTable
                                             │
                                             ├── Generates table headers and cells
@@ -24,6 +23,12 @@ The API side looks like this:
 
 ```text
 getExecutionResults()
+    │
+    ▼
+useExecutionResultsData
+    ├── Requests the selected page
+    ├── Converts the API response into a table-friendly shape
+    └── Manages loading, errors and request cancellation
     │
     ▼
 Axios API client
@@ -46,12 +51,14 @@ Returns only the requested page and the total record count
 | `reports.ts` | Provides functions for requesting data. |
 | `mockApi.ts` | Pretends to be a backend while developing. |
 | `report.ts` | Describes the expected data using TypeScript. |
-| `ExecutionResultsPage.tsx` | Fetches and prepares data, and manages the current page. |
+| `useExecutionResultsData.ts` | Loads, normalizes and cancels execution-result requests. |
+| `ExecutionResultsPage.tsx` | Manages pagination and composes the screen. |
 | `DynamicResultsTable.tsx` | Displays the supplied data and pagination controls. |
 
-The distinction between the last two is important:
+The separation of responsibilities is important:
 
-- The **page** knows where the data comes from.
+- The **hook** knows how to obtain and prepare the data.
+- The **page** knows which report and page are currently selected.
 - The **table** only knows how to display data it receives.
 
 That separation makes the table easier to reuse with another API later.
@@ -512,39 +519,42 @@ The total is necessary so the table can know whether another page exists.
 
 ---
 
-# 8. Prepare the data on the page
+# 8. Create the execution-results hook
 
-Create `ExecutionResultsPage.tsx`. Start with these imports:
+Create `src/hooks/useExecutionResultsData.ts`. A hook is a function that uses React hooks such as `useState` and `useEffect`. The prefix `use` tells React that it follows the normal hook rules.
 
-```tsx
+Start with these imports:
+
+```ts
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 
-import DynamicResultsTable from "../components/DynamicResultsTable";
-import { getExecutionResults, getReports } from "../api/reports";
 import { EXECUTION_RESULTS_PAGE_SIZE } from "../api/constants";
-import PageLayout from "../layouts/PageLayout";
-
+import { getExecutionResults } from "../api/reports";
 import type {
   ExecutionColumn,
   ExecutionColumnSource,
   ExecutionReportPayload,
-  Report,
 } from "../types/report";
 ```
 
 `import type` imports TypeScript-only definitions. They do not become runtime JavaScript values.
 
-## Define the table-friendly shape
+## Define the hook's result shape
 
-Add this below the imports:
+Add the normalized result type and the hook state type:
 
 ```ts
-interface NormalizedExecutionReport {
+export interface NormalizedExecutionReport {
   columns: ExecutionColumn[];
   rows: Record<string, unknown>[];
   total: number;
+}
+
+interface ExecutionResultsState {
+  data: NormalizedExecutionReport | null;
+  loading: boolean;
+  error: string;
 }
 ```
 
@@ -566,7 +576,7 @@ For example, after conversion the data looks conceptually like:
 
 `Record<string, unknown>` describes an object with string property names and values whose types are not yet known.
 
-### Why convert the data?
+### Why convert the data inside the hook?
 
 The API’s mock format places a `Columns` array inside each book. Converting it once gives the table a simpler job:
 
@@ -574,11 +584,13 @@ The API’s mock format places a `Columns` array inside each book. Converting it
 - use `rows` for cell values;
 - use `total` for pagination.
 
-If the API changes later, you can often update the conversion rather than the table itself.
+If the API changes later, you can often update the conversion function without changing the page or table.
+
+The page receives a simple, predictable shape instead of needing to understand the API's original structure.
 
 ## Add the conversion function
 
-Add this function above the page component:
+Add the function below the state interfaces:
 
 ```ts
 function normalizeExecutionReport(
@@ -710,32 +722,148 @@ The mock supplies `total`. If it is absent, the fallback is the number of rows i
 
 ---
 
-# 9. Add the page component and state
+# 9. Add hook state and the request effect
 
-Below `normalizeExecutionReport`, start the page component:
+After `normalizeExecutionReport`, add the hook:
+
+```ts
+export default function useExecutionResultsData(
+  reportId: string | undefined,
+  start: number,
+): ExecutionResultsState {
+  const [state, setState] = useState<ExecutionResultsState>({
+    data: null,
+    loading: true,
+    error: "",
+  });
+
+  useEffect(() => {
+    if (!reportId) {
+      setState({ data: null, loading: false, error: "" });
+      return;
+    }
+
+    const controller = new AbortController();
+    setState({ data: null, loading: true, error: "" });
+
+    getExecutionResults({
+      reportId,
+      start,
+      limit: EXECUTION_RESULTS_PAGE_SIZE,
+      signal: controller.signal,
+    })
+      .then((payload) => {
+        if (!controller.signal.aborted) {
+          setState({
+            data: normalizeExecutionReport(payload),
+            loading: false,
+            error: "",
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (axios.isCancel(error) || controller.signal.aborted) return;
+
+        setState({
+          data: null,
+          loading: false,
+          error: "Unable to load execution results. Please try again later.",
+        });
+      });
+
+    return () => controller.abort();
+  }, [reportId, start]);
+
+  return state;
+}
+```
+
+## What the hook owns
+
+The hook owns the data-request concerns:
+
+- calling `getExecutionResults`;
+- showing the current request state;
+- converting the API response;
+- reporting failures;
+- cancelling obsolete requests.
+
+The page does not need to know how a book is converted into a row.
+
+## Why the arguments matter
+
+```ts
+useExecutionResultsData(reportId, start)
+```
+
+- `reportId` selects the report.
+- `start` selects the first record for the requested page.
+
+The dependency array contains both:
+
+```ts
+[reportId, start]
+```
+
+Therefore, changing the report or clicking Next/Previous runs the effect again.
+
+## Why the hook resets loading state
+
+```ts
+setState({ data: null, loading: true, error: "" });
+```
+
+This clears the previous page while the next request is in progress. The page can then display its loading message and cannot accidentally show an old page during the request.
+
+## Cancellation
+
+```ts
+return () => controller.abort();
+```
+
+This cleanup runs before the effect is run again and when the component is removed. It prevents an older response from updating the hook after a newer page has been requested.
+
+---
+
+# 10. Add the page component and use the hooks
+
+Open `ExecutionResultsPage.tsx`. Add the imports:
+
+```tsx
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+import DynamicResultsTable from "../components/DynamicResultsTable";
+import { EXECUTION_RESULTS_PAGE_SIZE } from "../api/constants";
+import useExecutionResultsData from "../hooks/useExecutionResultsData";
+import useReportsData from "../hooks/useReportsData";
+import PageLayout from "../layouts/PageLayout";
+```
+
+Start the page component:
 
 ```tsx
 export default function ExecutionResultsPage() {
   const { id } = useParams<{ id: string }>();
-
   const [start, setStart] = useState(0);
-  const [title, setTitle] = useState("Report Name");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  const [result, setResult] = useState<NormalizedExecutionReport>({
-    columns: [],
-    rows: [],
-    total: 0,
-  });
+  const { data: reports } = useReportsData();
+  const {
+    data: result,
+    loading,
+    error,
+  } = useExecutionResultsData(id, start);
 
-  // Effects and JSX go here.
+  const title =
+    reports?.find((report) => report.id === id)?.title ?? "Report Name";
+
+  // Reset and JSX go here.
 }
 ```
 
 ## State explained
 
-`useState` gives React a value and a function to update it:
+The page only owns the current pagination offset:
 
 ```ts
 const [start, setStart] = useState(0);
@@ -745,27 +873,36 @@ const [start, setStart] = useState(0);
 - `setStart(...)` updates it.
 - React re-renders the component after the state changes.
 
-The other state values control the title, loading message, error message and prepared results.
-
-```ts
-useState<NormalizedExecutionReport>(...)
-```
-
-The part in `<...>` tells TypeScript the expected type of the state.
-
 `useParams` reads the route:
 
 ```ts
 const { id } = useParams<{ id: string }>();
 ```
 
-For `/reports/1`, `id` is `"1"`. The component checks that it exists before making requests.
+For `/reports/1`, `id` is `"1"`.
+
+`useReportsData()` loads the report list. The hook is called without arguments because the reports list always makes the same request.
+
+`useExecutionResultsData(id, start)` loads the currently selected result page. Its arguments explain which data should be fetched.
+
+## Derive the title
+
+```ts
+const title =
+  reports?.find((report) => report.id === id)?.title ?? "Report Name";
+```
+
+The title does not need its own state because it can be calculated from the reports and the route ID.
+
+- `?.` safely reads the property while `reports` may still be `null`.
+- `find` returns the matching report, if one exists.
+- `?? "Report Name"` supplies a fallback.
 
 ---
 
-# 10. Reset the offset when the report changes
+# 11. Reset the offset when the report changes
 
-Inside the component, after the state declarations, add:
+Inside the page component, after the hook calls, add:
 
 ```tsx
 useEffect(() => {
@@ -783,133 +920,9 @@ React re-runs this effect when `id` changes. Resetting the offset means that nav
 
 ---
 
-# 11. Load the report title
+# 12. Render the page
 
-Add the following effect:
-
-```tsx
-useEffect(() => {
-  if (!id) return;
-
-  const controller = new AbortController();
-
-  getReports({ signal: controller.signal })
-    .then((reports: Report[]) => {
-      if (!controller.signal.aborted) {
-        const report = reports.find((item) => item.id === id);
-
-        if (report) setTitle(report.title);
-      }
-    })
-    .catch((requestError: unknown) => {
-      if (!axios.isCancel(requestError) && !controller.signal.aborted) {
-        setTitle("Report Name");
-      }
-    });
-
-  return () => controller.abort();
-}, [id]);
-```
-
-### What it does
-
-1. Fetches the report list.
-2. Finds the report whose ID matches the URL.
-3. Sets its title as the page heading.
-
-```ts
-reports.find((item) => item.id === id)
-```
-
-`find` returns the first matching item, or `undefined` if none exists. `===` checks for equality.
-
-### Why use `AbortController`?
-
-```ts
-const controller = new AbortController();
-```
-
-This creates a cancellation controller.
-
-```ts
-return () => controller.abort();
-```
-
-This is the effect’s **cleanup function**. React calls it when the effect is being replaced or the component is removed. It prevents an old request from updating the page after navigation.
-
-### Current behavior to be aware of
-
-If the title request fails, the page silently uses `"Report Name"`. If an ID is not found, there is no dedicated “report not found” message. Those are current limitations, not features of the mock API.
-
----
-
-# 12. Load the results whenever the page changes
-
-Add another effect:
-
-```tsx
-useEffect(() => {
-  if (!id) return;
-
-  const controller = new AbortController();
-
-  setLoading(true);
-  setError("");
-
-  getExecutionResults({
-    reportId: id,
-    start,
-    limit: EXECUTION_RESULTS_PAGE_SIZE,
-    signal: controller.signal,
-  })
-    .then((payload) => {
-      if (!controller.signal.aborted) {
-        setResult(normalizeExecutionReport(payload));
-        setLoading(false);
-      }
-    })
-    .catch((requestError: unknown) => {
-      if (axios.isCancel(requestError) || controller.signal.aborted) return;
-
-      setError("Unable to load execution results. Please try again later.");
-      setLoading(false);
-    });
-
-  return () => controller.abort();
-}, [id, start]);
-```
-
-The key part is the dependency array:
-
-```ts
-[id, start]
-```
-
-When the report ID **or** the starting offset changes, React runs the effect again and requests the corresponding data.
-
-### Success and failure
-
-```ts
-.then((payload) => {
-  setResult(normalizeExecutionReport(payload));
-})
-```
-
-`.then(...)` handles a successful Promise. The API response is normalized before it goes into state.
-
-```ts
-.catch((requestError: unknown) => {
-  // ...
-})
-```
-
-`.catch(...)` handles failure. Cancelled requests are ignored because cancellation is expected during navigation or page changes; other failures show an error.
-
----
-
-# 13. Render the page
-
-Still inside `ExecutionResultsPage`, add the return statement after the effects:
+Still inside `ExecutionResultsPage`, add the return statement after the reset effect:
 
 ```tsx
 return (
@@ -920,7 +933,7 @@ return (
 
     {error && <p role="alert">{error}</p>}
 
-    {!loading && !error && (
+    {!loading && !error && result && (
       <DynamicResultsTable
         columns={result.columns}
         rows={result.rows}
@@ -945,10 +958,14 @@ Close the function with `}`.
 This displays the paragraph only when `loading` is true.
 
 ```tsx
-{!loading && !error && (...)}
+{!loading && !error && result && (...)}
 ```
 
-`!` means “not.” The table appears only when the request is no longer loading and there is no error.
+`!` means “not.” The table appears only when:
+
+- the request is no longer loading;
+- there is no error; and
+- the hook has returned normalized result data.
 
 ### Passing props
 
@@ -968,7 +985,7 @@ These are **props**: values passed from a parent component to a child component.
 
 ---
 
-# 14. Create the reusable table
+# 13. Create the reusable table
 
 Create `DynamicResultsTable.tsx`.
 
@@ -1208,7 +1225,7 @@ That prevents the offset from going below zero.
 
 ---
 
-# 15. Add table styling
+# 14. Add table styling
 
 Create `DynamicResultsTable.scss`:
 
@@ -1299,7 +1316,7 @@ The scrollable wrapper uses `.table-container`, whose `overflow-x: auto` style c
 
 ---
 
-# 16. Try it manually
+# 15. Try it manually
 
 Start the existing development server:
 

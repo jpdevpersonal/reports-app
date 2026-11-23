@@ -1,0 +1,76 @@
+{
+    "pagination": {
+        "pageNumber": 0,
+        "pageSize": 20,
+        "numberOfRecords": 100,
+        "numberOfPages":1
+    },
+    "columns":[
+        {
+            "id": "book_id",
+            "displayName": "Book_id",
+            "dataType": "string"
+        },
+        {
+            "id": "title",
+            "displayName": "title",
+            "dataType": "string"
+        },
+        {
+            "id": "author",
+            "displayName": "Author",
+            "dataType": "string"
+        },
+        {
+            "id": "genre",
+            "displayName": "genre",
+            "dataType": "string"
+        },
+        {
+            "id": "isbn",
+            "displayName": "isbn",
+            "dataType": "string"
+        },
+        {
+            "id": "publisher",
+            "displayName": "publisher",
+            "dataType": "string"
+        },
+        {
+            "id": "publication_year",
+            "displayName": "publicationyear",
+            "dataType": "integer"
+        },
+        {
+            "id": "price",
+            "displayName": "price",
+            "dataType": "numeric"
+        },
+        {
+            "id": "stock_quantity",
+            "displayName": "stock quantity",
+            "dataType": "numeric"
+        },
+        {
+            "id": "created_at",
+            "displayName": "created at",
+            "dataType": "timestamp"
+        }
+    ],
+    "rows": [
+        {
+         "entries": [
+             1,
+             "Animal Farm",
+             "George Orewell",
+             "Political Satire",
+             "9029810",
+             "Pengui books",
+             1949,
+             19.99,
+             100,
+             "2024-06-01T12:00:00Z"
+         ]
+        }
+    ]
+}
