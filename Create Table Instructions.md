@@ -117,6 +117,14 @@ export interface ExecutionReportPayload {
   columns: ExecutionColumn[]
   rows: ExecutionRow[]
 }
+
+export interface ReportExecutionRequest {
+  inputParameters: Record<string, {
+    displayName: string
+    type: string
+    value: unknown
+  }>
+}
 ```
 
 `unknown[]` means an entry can hold any primitive or other API value, but code must narrow its type before performing type-specific operations.
@@ -135,10 +143,14 @@ The request hook and mock API import this value so their default page size remai
 
 ## 5. Add the API request
 
-In `src/api/reports.ts`, import the response type and page size:
+In `src/api/reports.ts`, import the response and request types and page size:
 
 ```ts
-import type { ExecutionReportPayload, Report } from '../types/report'
+import type {
+  ExecutionReportPayload,
+  Report,
+  ReportExecutionRequest,
+} from '../types/report'
 import { EXECUTION_RESULTS_PAGE_SIZE } from './constants'
 ```
 
@@ -147,6 +159,7 @@ Keep the options used by the request:
 ```ts
 interface ExecutionResultsRequestOptions extends RequestOptions {
   reportId: string
+  executionRequest: ReportExecutionRequest
   start?: number
   limit?: number
 }
@@ -157,28 +170,55 @@ Implement the request:
 ```ts
 export async function getExecutionResults({
   reportId,
+  executionRequest,
   start = 0,
   limit = EXECUTION_RESULTS_PAGE_SIZE,
   signal,
 }: ExecutionResultsRequestOptions): Promise<ExecutionReportPayload> {
-  const response = await apiClient.get<ExecutionReportPayload>(
-    `/reports/${encodeURIComponent(reportId)}/results`,
-    { params: { start, limit }, signal },
+  const safeLimit = Number.isFinite(limit) && limit > 0
+    ? limit
+    : EXECUTION_RESULTS_PAGE_SIZE
+  const safeStart = Number.isFinite(start) && start > 0 ? start : 0
+
+  const response = await apiClient.post<ExecutionReportPayload>(
+    `/reports/${encodeURIComponent(reportId)}/executions`,
+    executionRequest,
+    {
+      params: {
+        page: Math.floor(safeStart / safeLimit),
+        size: safeLimit,
+      },
+      signal,
+    },
   )
 
   return response.data
 }
 ```
 
-For report `1`, page requests are:
+For report `books`, the request is:
 
 ```text
-/reports/1/results?start=0&limit=20
-/reports/1/results?start=20&limit=20
-/reports/1/results?start=40&limit=20
+POST /reports/books/executions?page=0&size=20
+POST /reports/books/executions?page=1&size=20
+POST /reports/books/executions?page=2&size=20
 ```
 
-`start` is a zero-based record offset. `signal` lets the hook cancel a request that is no longer relevant.
+The request body follows the Java `ReportExecutionDto` shape:
+
+```json
+{
+  "inputParameters": {
+    "test-1": {
+      "displayName": "Test 1",
+      "type": "string",
+      "value": "books"
+    }
+  }
+}
+```
+
+`start` remains a zero-based UI offset. The API converts it to Spring's zero-based `page` parameter and sends the configured limit as `size`. `signal` lets the hook cancel a request that is no longer relevant.
 
 The function should return `response.data` directly. The old `executionReport` assertion is not needed because the response type now describes the actual top-level contract.
 
@@ -195,25 +235,28 @@ Do not import or retain `executionResults.json`; it used the legacy `executionRe
 Paginate the `rows` array:
 
 ```ts
-mock.onGet(/\/reports\/[^/]+\/results$/).reply((config) => {
-  const start = Number(config.params?.start ?? 0)
-  const limit = Number(config.params?.limit ?? EXECUTION_RESULTS_PAGE_SIZE)
+mock.onPost(/\/reports\/[^/]+\/executions$/).reply((config) => {
+  const pageNumber = Number(config.params?.page ?? 0)
+  const pageSize = Number(config.params?.size ?? EXECUTION_RESULTS_PAGE_SIZE)
   const rows = executionResults.rows
 
-  const safeStart = Number.isFinite(start) && start > 0 ? start : 0
-  const safeLimit = Number.isFinite(limit) && limit > 0
-    ? limit
+  const safePageNumber = Number.isFinite(pageNumber) && pageNumber > 0
+    ? Math.floor(pageNumber)
+    : 0
+  const safePageSize = Number.isFinite(pageSize) && pageSize > 0
+    ? pageSize
     : EXECUTION_RESULTS_PAGE_SIZE
 
-  const page = rows.slice(safeStart, safeStart + safeLimit)
+  const safeStart = safePageNumber * safePageSize
+  const page = rows.slice(safeStart, safeStart + safePageSize)
   const numberOfRecords = rows.length
-  const numberOfPages = Math.ceil(numberOfRecords / safeLimit)
+  const numberOfPages = Math.ceil(numberOfRecords / safePageSize)
 
   return [200, {
     ...executionResults,
     pagination: {
-      pageNumber: Math.floor(safeStart / safeLimit),
-      pageSize: safeLimit,
+      pageNumber: safePageNumber,
+      pageSize: safePageSize,
       numberOfRecords,
       numberOfPages,
     },
@@ -230,7 +273,7 @@ With 50 records and a page size of 20:
 | 20 | 20 | 21-40 |
 | 40 | 10 | 41-50 |
 
-The mock validates unusual `start` and `limit` values, then rebuilds pagination metadata from the complete dataset. The response preserves the column definitions and replaces only the `rows` array.
+The mock validates the `page` and `size` values, then rebuilds pagination metadata from the complete dataset. The response preserves the column definitions and replaces only the `rows` array.
 
 ## 7. Load results in a hook
 
@@ -242,7 +285,10 @@ import { useEffect, useState } from "react";
 
 import { EXECUTION_RESULTS_PAGE_SIZE } from "../api/constants";
 import { getExecutionResults } from "../api/reports";
-import type { ExecutionReportPayload } from "../types/report";
+import type {
+  ExecutionReportPayload,
+  ReportExecutionRequest,
+} from "../types/report";
 
 interface ExecutionResultsState {
   data: ExecutionReportPayload | null;
@@ -254,9 +300,14 @@ interface ExecutionResultsState {
 The hook can store the API payload directly because rows already have the shape consumed by the table:
 
 ```ts
+const EMPTY_EXECUTION_REQUEST: ReportExecutionRequest = {
+  inputParameters: {},
+};
+
 export default function useExecutionResultsData(
   reportId: string | undefined,
   start: number,
+  executionRequest = EMPTY_EXECUTION_REQUEST,
 ): ExecutionResultsState {
   const [state, setState] = useState<ExecutionResultsState>({
     data: null,
@@ -275,6 +326,7 @@ export default function useExecutionResultsData(
 
     getExecutionResults({
       reportId,
+      executionRequest,
       start,
       limit: EXECUTION_RESULTS_PAGE_SIZE,
       signal: controller.signal,
@@ -299,7 +351,7 @@ export default function useExecutionResultsData(
       });
 
     return () => controller.abort();
-  }, [reportId, start]);
+  }, [executionRequest, reportId, start]);
 
   return state;
 }
@@ -329,6 +381,7 @@ The page owns the zero-based offset:
 const { id } = useParams<{ id: string }>();
 const [start, setStart] = useState(0);
 const { data: reports } = useReportsData();
+const report = reports?.find((candidate) => candidate.id === id);
 const { data: result, loading, error } =
   useExecutionResultsData(id, start);
 ```
@@ -563,7 +616,7 @@ The existing `.table-container` style provides horizontal scrolling, and the pag
 Mock execution responses in tests must now use the top-level shape:
 
 ```ts
-mock.onGet("/reports/1/results").reply(200, {
+mock.onPost("/reports/1/executions").reply(200, {
   pagination: {
     pageNumber: 0,
     pageSize: 20,
@@ -586,7 +639,7 @@ Tests should verify:
 - cells read values from `entries` by column position;
 - numeric values are formatted;
 - boolean values display as `Yes` or `No`;
-- Next requests the next `start` offset;
+- Next POSTs the next Spring `page` value and retains the execution request body;
 - the final page disables Next;
 - the first page disables Previous;
 - errors still display an alert;

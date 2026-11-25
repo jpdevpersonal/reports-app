@@ -8,23 +8,26 @@ export function setupMockApi(client: AxiosInstance) {
   const mock = new MockAdapter(client, { delayResponse: 150 })
 
   mock.onGet('/reports').reply(200, reports)
-  mock.onGet(/\/reports\/[^/]+\/results$/).reply((config) => {
-    const start = Number(config.params?.start ?? 0)
-    const limit = Number(config.params?.limit ?? EXECUTION_RESULTS_PAGE_SIZE)
+  mock.onPost(/\/reports\/[^/]+\/executions$/).reply((config) => {
+    const pageNumber = Number(config.params?.page ?? 0)
+    const pageSize = Number(config.params?.size ?? EXECUTION_RESULTS_PAGE_SIZE)
     const rows = executionResults.rows
-    const safeStart = Number.isFinite(start) && start > 0 ? start : 0
-    const safeLimit = Number.isFinite(limit) && limit > 0
-      ? limit
+    const safePageNumber = Number.isFinite(pageNumber) && pageNumber > 0
+      ? Math.floor(pageNumber)
+      : 0
+    const safePageSize = Number.isFinite(pageSize) && pageSize > 0
+      ? pageSize
       : EXECUTION_RESULTS_PAGE_SIZE
-    const page = rows.slice(safeStart, safeStart + safeLimit)
+    const safeStart = safePageNumber * safePageSize
+    const page = rows.slice(safeStart, safeStart + safePageSize)
     const numberOfRecords = rows.length
-    const numberOfPages = Math.ceil(numberOfRecords / safeLimit)
+    const numberOfPages = Math.ceil(numberOfRecords / safePageSize)
 
     return [200, {
       ...executionResults,
       pagination: {
-        pageNumber: Math.floor(safeStart / safeLimit),
-        pageSize: safeLimit,
+        pageNumber: safePageNumber,
+        pageSize: safePageSize,
         numberOfRecords,
         numberOfPages,
       },

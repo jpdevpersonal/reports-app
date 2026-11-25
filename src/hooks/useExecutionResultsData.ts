@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 
 import { EXECUTION_RESULTS_PAGE_SIZE } from "../api/constants";
 import { getExecutionResults } from "../api/reports";
-import type { ExecutionReportPayload } from "../types/report";
+import type {
+  ExecutionReportPayload,
+  ReportExecutionRequest,
+} from "../types/report";
 
 interface ExecutionResultsState {
   data: ExecutionReportPayload | null;
@@ -11,9 +14,14 @@ interface ExecutionResultsState {
   error: string;
 }
 
+const EMPTY_EXECUTION_REQUEST: ReportExecutionRequest = {
+  inputParameters: {},
+};
+
 export default function useExecutionResultsData(
   reportId: string | undefined,
   start: number,
+  executionRequest = EMPTY_EXECUTION_REQUEST,
 ): ExecutionResultsState {
   const [state, setState] = useState<ExecutionResultsState>({
     data: null,
@@ -32,6 +40,7 @@ export default function useExecutionResultsData(
 
     getExecutionResults({
       reportId,
+      executionRequest,
       start,
       limit: EXECUTION_RESULTS_PAGE_SIZE,
       signal: controller.signal,
@@ -55,7 +64,7 @@ export default function useExecutionResultsData(
       });
 
     return () => controller.abort();
-  }, [reportId, start]);
+  }, [executionRequest, reportId, start]);
 
   return state;
 }

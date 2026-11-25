@@ -35,7 +35,7 @@ function renderPage() {
 
 it("loads report details and execution results through the hooks", async () => {
   mock.onGet("/reports").reply(200, reports);
-  mock.onGet("/reports/1/results").reply(200, {
+  mock.onPost("/reports/1/executions").reply(200, {
     pagination: {
       pageNumber: 0,
       pageSize: 20,
@@ -59,17 +59,21 @@ it("loads report details and execution results through the hooks", async () => {
   expect(table.getByRole("columnheader", { name: "Title" })).toBeInTheDocument();
   expect(table.getByRole("cell", { name: "The Hobbit" })).toBeInTheDocument();
   expect(table.getByRole("cell", { name: "Yes" })).toBeInTheDocument();
-  expect(mock.history.get.find((request) =>
-    request.url === "/reports/1/results",
-  )?.params).toEqual({
-    start: 0,
-    limit: EXECUTION_RESULTS_PAGE_SIZE,
+  const request = mock.history.post.find((item) =>
+    item.url === "/reports/1/executions",
+  );
+  expect(request?.params).toEqual({
+    page: 0,
+    size: EXECUTION_RESULTS_PAGE_SIZE,
+  });
+  expect(JSON.parse(request?.data)).toEqual({
+    inputParameters: {},
   });
 });
 
 it("requests the next page when pagination changes", async () => {
   mock.onGet("/reports").reply(200, reports);
-  mock.onGet("/reports/1/results").reply(200, {
+  mock.onPost("/reports/1/executions").reply(200, {
     pagination: {
       pageNumber: 0,
       pageSize: 20,
@@ -88,17 +92,17 @@ it("requests the next page when pagination changes", async () => {
   await screen.findByRole("table", { name: "Execution results" });
   await user.click(screen.getByRole("button", { name: "Next" }));
 
-  expect(mock.history.get.filter((request) =>
-    request.url === "/reports/1/results",
+  expect(mock.history.post.filter((request) =>
+    request.url === "/reports/1/executions",
   ).at(-1)?.params).toEqual({
-    start: EXECUTION_RESULTS_PAGE_SIZE,
-    limit: EXECUTION_RESULTS_PAGE_SIZE,
+    page: 1,
+    size: EXECUTION_RESULTS_PAGE_SIZE,
   });
 });
 
 it("shows an error when execution results fail to load", async () => {
   mock.onGet("/reports").reply(200, reports);
-  mock.onGet("/reports/1/results").reply(500);
+  mock.onPost("/reports/1/executions").reply(500);
 
   renderPage();
 

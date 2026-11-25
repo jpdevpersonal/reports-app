@@ -17,7 +17,9 @@ function formatValue(value: unknown, type: ExecutionColumn["dataType"]) {
   if (value === null || value === undefined || value === "") return "-";
   if (type === "boolean") return value ? "Yes" : "No";
   if ((type === "integer" || type === "numeric") && typeof value === "number") {
-    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
+    return new Intl.NumberFormat(undefined, {
+      maximumFractionDigits: 2,
+    }).format(value);
   }
   return String(value);
 }
@@ -67,7 +69,10 @@ export function DynamicResultsTable({
         </table>
       </div>
 
-      <nav className="dynamic-results-pagination" aria-label="Execution results pagination">
+      <nav
+        className="dynamic-results-pagination"
+        aria-label="Execution results pagination"
+      >
         <button
           type="button"
           disabled={!canGoPrevious}

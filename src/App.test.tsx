@@ -52,10 +52,13 @@ it("loads the report table and opens execution results when a title is clicked",
   expect(
     await screen.findByRole("table", { name: "Execution results" }),
   ).toBeInTheDocument();
-  expect(mock.history.get.map((request) => request.url)).toEqual([
+  expect([
+    ...mock.history.get.map((request) => request.url),
+    ...mock.history.post.map((request) => request.url),
+  ]).toEqual([
     "/reports",
     "/reports",
-    "/reports/1/results",
+    "/reports/1/executions",
   ]);
 });
 
@@ -67,8 +70,8 @@ it("shows execution results when opening a report URL directly", async () => {
   expect(
     await screen.findByRole("table", { name: "Execution results" }),
   ).toBeInTheDocument();
-  expect(mock.history.get.map((request) => request.url)).toContain(
-    "/reports/2/results",
+  expect(mock.history.post.map((request) => request.url)).toContain(
+    "/reports/2/executions",
   );
 });
 
@@ -80,8 +83,8 @@ it("shows execution results for an unknown report ID", async () => {
   expect(
     await screen.findByRole("table", { name: "Execution results" }),
   ).toBeInTheDocument();
-  expect(mock.history.get.map((request) => request.url)).toContain(
-    "/reports/missing/results",
+  expect(mock.history.post.map((request) => request.url)).toContain(
+    "/reports/missing/executions",
   );
 });
 

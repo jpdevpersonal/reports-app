@@ -10,8 +10,10 @@ export default function ExecutionResultsPage() {
   const { id } = useParams<{ id: string }>();
   const [start, setStart] = useState(0);
   const { data: reports } = useReportsData();
-  const { data: result, loading, error } = useExecutionResultsData(id, start);
-  const title = reports?.find((report) => report.id === id)?.title ?? "Report Name";
+  const report = reports?.find((candidate) => candidate.id === id);
+  const { data: result, loading, error } =
+    useExecutionResultsData(id, start);
+  const title = report?.title ?? "Report Name";
 
   useEffect(() => {
     setStart(0);
